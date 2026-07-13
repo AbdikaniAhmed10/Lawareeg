@@ -13,7 +13,13 @@ class EnsureEmailIsVerified
     {
         $user = $request->user();
 
-        if (! $user || ($user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail())) {
+        if (! $user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if ($user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail()) {
             return response()->json([
                 'message' => 'Your email address is not verified.',
                 'email_verified' => false,

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Support\Media;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class OrderResource extends JsonResource
 {
@@ -20,7 +20,9 @@ class OrderResource extends JsonResource
             'commission_amount' => (float) $this->commission_amount,
             'seller_amount' => (float) $this->seller_amount,
             'payment_method_instructions' => $this->payment_method_instructions,
-            'payment_proof_url' => $this->payment_proof_path ? Storage::url($this->payment_proof_path) : null,
+            'payment_proof_url' => $this->payment_proof_path
+                ? Media::signedRoute('secure.payment-proof', ['order' => $this->id])
+                : null,
             'payment_proof_note' => $this->payment_proof_note,
             'payment_confirmed_at' => $this->payment_confirmed_at?->toIso8601String(),
             'asset_transferred_at' => $this->asset_transferred_at?->toIso8601String(),

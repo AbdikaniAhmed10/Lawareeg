@@ -50,7 +50,7 @@ Install Docker Compose plugin if needed (`docker compose version`).
 
 ```bash
 cd /var/www
-sudo git clone https://github.com/YOUR_USER/Lawareeg.git lawareeg
+sudo git clone https://github.com/AbdikaniAhmed10/Lawareeg.git lawareeg
 cd lawareeg
 cp .env.docker.example .env.docker
 nano .env.docker
@@ -110,7 +110,7 @@ sudo certbot --nginx -d lawareeg.yourdomain.com
 
 Users cannot open the dashboard until they verify email.
 Configure SMTP in `.env.docker` (Mailgun, Postmark, SES, etc.).
-Local/dev can use `MAIL_MAILER=log` and read `storage/logs`.
+Local/dev can use `MAIL_MAILER=log` and read `storage/logs`. Production needs real SMTP (e.g. Gmail App Password) so the 6-digit verification code email is delivered.
 
 ## 6. Backups
 

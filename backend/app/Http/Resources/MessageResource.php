@@ -13,7 +13,9 @@ class MessageResource extends JsonResource
             'id' => $this->id,
             'conversation_id' => $this->conversation_id,
             'body' => $this->body,
-            'attachment_url' => $this->attachment_path ? \App\Support\Media::url($this->attachment_path) : null,
+            'attachment_url' => $this->attachment_path
+                ? \App\Support\Media::signedRoute('secure.message-attachment', ['message' => $this->id])
+                : null,
             'attachment_type' => $this->attachment_type,
             'sender' => new UserResource($this->whenLoaded('sender')),
             'sender_id' => $this->sender_id,

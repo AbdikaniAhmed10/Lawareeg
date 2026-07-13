@@ -21,7 +21,10 @@ Built with OWASP-oriented practices for a marketplace that handles accounts and 
 
 - Form requests validate all mutating endpoints.
 - Uploads: mime whitelist + size caps (receipts, IDs, screenshots, message attachments).
+- **Sensitive files** (payment proofs, seller ID docs, chat attachments) are stored on the **private** disk and served only via **temporary signed URLs** — not public `/storage/` links.
+- Public `/storage/` is limited to marketplace media (avatars, listing screenshots). Nginx denies legacy sensitive prefixes.
 - Eloquent / query builder (parameterized) — not raw concatenated SQL.
+- Rate limits on auth, withdrawals, order actions, uploads, and messaging.
 
 ## XSS / CSRF
 

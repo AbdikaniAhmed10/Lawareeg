@@ -81,7 +81,7 @@ class OrderController extends Controller
             throw ValidationException::withMessages(['order' => ['Only the buyer can upload payment proof.']]);
         }
 
-        $path = $request->file('file')->store('payment-proofs/'.$order->id, 'public');
+        $path = $request->file('file')->store('payment-proofs/'.$order->id, 'local');
 
         try {
             $order = $this->orderService->submitPaymentProof($order, $request->user(), $path, $request->validated('note'));

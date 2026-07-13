@@ -51,6 +51,7 @@ services:
       QUEUE_CONNECTION: database
     volumes:
       - lawareeg_storage:/var/www/html/storage/app/public
+      - lawareeg_private:/var/www/html/storage/app/private
     depends_on:
       mysql:
         condition: service_healthy
@@ -85,6 +86,7 @@ services:
 volumes:
   lawareeg_mysql:
   lawareeg_storage:
+  lawareeg_private:
 
 networks:
   lawareeg:

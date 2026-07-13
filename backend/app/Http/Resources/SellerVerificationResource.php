@@ -13,7 +13,9 @@ class SellerVerificationResource extends JsonResource
         return [
             'id' => $this->id,
             'id_type' => $this->id_type,
-            'document_url' => Media::url($this->document_path),
+            'document_url' => $this->document_path
+                ? Media::signedRoute('secure.seller-document', ['verification' => $this->id])
+                : null,
             'status' => $this->status,
             'notes' => $this->notes,
             'user' => new UserResource($this->whenLoaded('user')),

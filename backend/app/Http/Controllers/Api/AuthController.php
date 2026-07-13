@@ -15,10 +15,12 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -30,6 +32,7 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'country' => $data['country'],
             'role' => $data['role'] ?? 'buyer',
             'referral_code' => Str::upper(Str::random(8)),
         ]);
@@ -37,15 +40,18 @@ class AuthController extends Controller
         $user->wallet()->create([]);
         $user->refresh();
 
-        $user->sendEmailVerificationNotification();
+        $mailSent = $this->sendVerificationSafely($user);
 
         $token = $user->createToken('api')->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
-            'message' => 'Account created. Please verify your email before using the dashboard.',
+            'message' => $mailSent
+                ? 'Account created. Enter the 6-digit code we emailed you to verify your account.'
+                : 'Account created, but we could not send the verification email. Tap Resend code in a moment.',
             'email_verified' => false,
+            'mail_sent' => $mailSent,
         ], 201);
     }
 
@@ -67,43 +73,64 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->isAdmin() && ! $user->email_verified_at) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+            $user->refresh();
+        }
+
         $token = $user->createToken('api')->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
-            'email_verified' => (bool) $user->email_verified_at,
+            'email_verified' => $user->hasVerifiedEmail(),
             'message' => $user->hasVerifiedEmail()
                 ? null
-                : 'Please verify your email before accessing the dashboard.',
+                : 'Please enter the verification code from your email before accessing the dashboard.',
         ]);
     }
 
-    public function verifyEmail(Request $request, string $id, string $hash)
+    public function verifyEmailCode(Request $request)
     {
-        $user = User::findOrFail($id);
+        $data = $request->validate([
+            'code' => ['required', 'string', 'size:6'],
+        ]);
 
-        if (! hash_equals(sha1($user->getEmailForVerification()), (string) $hash)) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid verification link.'],
-            ]);
-        }
+        $user = $request->user();
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            event(new Verified($user));
-        }
-
-        if ($request->expectsJson() || $request->wantsJson() || $request->query('json')) {
+        if ($user->hasVerifiedEmail()) {
             return response()->json([
-                'message' => 'Email verified successfully. You can sign in now.',
+                'user' => new UserResource($user),
+                'message' => 'Email already verified.',
                 'email_verified' => true,
             ]);
         }
 
-        $frontend = rtrim(config('app.frontend_url'), '/');
+        if (
+            ! $user->email_verification_code
+            || ! $user->email_verification_expires_at
+            || $user->email_verification_expires_at->isPast()
+        ) {
+            throw ValidationException::withMessages([
+                'code' => ['This code has expired. Request a new one.'],
+            ]);
+        }
 
-        return redirect()->away("{$frontend}/login?verified=1");
+        if (! Hash::check($data['code'], $user->email_verification_code)) {
+            throw ValidationException::withMessages([
+                'code' => ['Invalid verification code.'],
+            ]);
+        }
+
+        $user->markEmailAsVerified();
+        $user->clearEmailVerificationCode();
+        event(new Verified($user));
+
+        return response()->json([
+            'user' => new UserResource($user->fresh()),
+            'message' => 'Email verified successfully.',
+            'email_verified' => true,
+        ]);
     }
 
     public function resendVerification(Request $request)
@@ -114,9 +141,29 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email already verified.']);
         }
 
-        $user->sendEmailVerificationNotification();
+        if (! $this->sendVerificationSafely($user)) {
+            return response()->json([
+                'message' => 'Could not send the verification email. Check mail settings or try again shortly.',
+            ], 503);
+        }
 
-        return response()->json(['message' => 'Verification link sent. Check your inbox.']);
+        return response()->json(['message' => 'A new verification code was sent. Check your inbox (and spam).']);
+    }
+
+    private function sendVerificationSafely(User $user): bool
+    {
+        try {
+            $user->sendEmailVerificationNotification();
+
+            return true;
+        } catch (Throwable $e) {
+            Log::error('Failed to send verification email', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     public function logout(Request $request)

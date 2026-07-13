@@ -1,9 +1,10 @@
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 
-/** True when the user has verified their email (or is a seeded demo with email_verified). */
+/** True when email is verified, or the user is an admin (admins skip OTP). */
 export function isEmailVerified(user) {
   if (!user) return false
+  if (user.role === 'admin') return true
   return Boolean(user.email_verified || user.email_verified_at)
 }
 

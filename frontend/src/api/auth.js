@@ -10,10 +10,7 @@ export const authApi = {
   updateProfile: (payload) => apiClient.put('/auth/profile', payload).then((r) => r.data),
   changePassword: (payload) => apiClient.put('/auth/password', payload).then((r) => r.data),
   resendVerification: () => apiClient.post('/auth/email/resend').then((r) => r.data),
-  verifyEmail: (id, hash, params) =>
-    apiClient
-      .get(`/auth/email/verify/${id}/${hash}`, { params: { ...params, json: 1 } })
-      .then((r) => r.data),
+  verifyEmailCode: (code) => apiClient.post('/auth/email/verify-code', { code }).then((r) => r.data),
 }
 
 export default authApi

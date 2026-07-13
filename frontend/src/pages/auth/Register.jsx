@@ -2,22 +2,34 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, User, ArrowRight, ShieldCheck } from 'lucide-react'
 import Input from '../../components/ui/Input'
+import Select from '../../components/ui/Select'
 import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
 import authApi from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 import BackButton from '../../components/ui/BackButton'
+import { COUNTRIES } from '../../lib/countries'
 
 export default function Register() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
-  const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' })
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    country: '',
+  })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    if (!form.country) {
+      setError('Please select your country.')
+      return
+    }
     if (form.password !== form.password_confirmation) {
       setError('Passwords do not match.')
       return
@@ -28,7 +40,13 @@ export default function Register() {
       setAuth(res.user, res.token || res.access_token)
       navigate('/verify-email')
     } catch (err) {
-      setError(err?.response?.data?.message || 'Could not create your account. Please check your details.')
+      const errors = err?.response?.data?.errors
+      const first =
+        errors?.country?.[0] ||
+        errors?.email?.[0] ||
+        errors?.password?.[0] ||
+        err?.response?.data?.message
+      setError(first || 'Could not create your account. Please check your details.')
     } finally {
       setLoading(false)
     }
@@ -66,6 +84,20 @@ export default function Register() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
             />
+            <Select
+              label="Country"
+              name="country"
+              placeholder="Select your country"
+              value={form.country}
+              onChange={(e) => setForm({ ...form, country: e.target.value })}
+              required
+            >
+              {COUNTRIES.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </Select>
             <Input
               label="Password"
               type="password"

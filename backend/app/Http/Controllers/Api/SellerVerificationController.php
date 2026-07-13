@@ -38,7 +38,7 @@ class SellerVerificationController extends Controller
             ]);
         }
 
-        $path = $request->file('document')->store('seller-verifications/'.$user->id, 'public');
+        $path = $request->file('document')->store('seller-verifications/'.$user->id, 'local');
 
         $verification = $user->sellerVerifications()->create([
             'document_path' => $path,

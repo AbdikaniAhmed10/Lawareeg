@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class Media
@@ -28,5 +29,13 @@ class Media
 
         // Raw disk path like listings/7/avatar.jpg
         return url(Storage::url(ltrim($pathOrUrl, '/')));
+    }
+
+    /**
+     * Temporary signed download URL for private sensitive files (receipts, IDs, attachments).
+     */
+    public static function signedRoute(string $name, array $parameters, int $minutes = 30): string
+    {
+        return URL::temporarySignedRoute($name, now()->addMinutes($minutes), $parameters);
     }
 }

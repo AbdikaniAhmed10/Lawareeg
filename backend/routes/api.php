@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\MyListingController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\SecureFileController;
 use App\Http\Controllers\Api\SellerController;
 use App\Http\Controllers\Api\SellerVerificationController;
 use App\Http\Controllers\Api\SettingController;
@@ -32,6 +33,19 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Signed temporary downloads for sensitive files (issued only to authorized API consumers).
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/secure/orders/{order}/payment-proof', [SecureFileController::class, 'paymentProof'])
+        ->middleware('signed')
+        ->name('secure.payment-proof');
+    Route::get('/secure/verifications/{verification}/document', [SecureFileController::class, 'sellerDocument'])
+        ->middleware('signed')
+        ->name('secure.seller-document');
+    Route::get('/secure/messages/{message}/attachment', [SecureFileController::class, 'messageAttachment'])
+        ->middleware('signed')
+        ->name('secure.message-attachment');
+});
+
 // ---- Auth ----
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
@@ -39,13 +53,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
 
-    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-        ->middleware(['signed', 'throttle:10,1'])
-        ->name('verification.verify');
-
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/email/verify-code', [AuthController::class, 'verifyEmailCode'])->middleware('throttle:10,1');
         Route::post('/email/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1');
         Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('verified');
         Route::post('/profile', [AuthController::class, 'updateProfile'])->middleware('verified');
@@ -73,11 +84,11 @@ Route::middleware(['auth:sanctum', 'not-suspended', 'verified'])->group(function
     // My listings
     Route::get('/my/listings', [MyListingController::class, 'index']);
     Route::get('/my/listings/{listing}', [MyListingController::class, 'show']);
-    Route::post('/my/listings', [MyListingController::class, 'store']);
-    Route::put('/my/listings/{listing}', [MyListingController::class, 'update']);
-    Route::post('/my/listings/{listing}', [MyListingController::class, 'update']);
+    Route::post('/my/listings', [MyListingController::class, 'store'])->middleware('throttle:20,1');
+    Route::put('/my/listings/{listing}', [MyListingController::class, 'update'])->middleware('throttle:30,1');
+    Route::post('/my/listings/{listing}', [MyListingController::class, 'update'])->middleware('throttle:30,1');
     Route::delete('/my/listings/{listing}', [MyListingController::class, 'destroy']);
-    Route::post('/my/listings/{listing}/screenshots', [MyListingController::class, 'uploadScreenshots']);
+    Route::post('/my/listings/{listing}/screenshots', [MyListingController::class, 'uploadScreenshots'])->middleware('throttle:20,1');
     Route::post('/my/listings/{listing}/ownership/mark-placed', [MyListingController::class, 'markOwnershipCodePlaced']);
     Route::post('/assets/preview', AssetPreviewController::class)->middleware('throttle:20,1');
 
@@ -88,37 +99,37 @@ Route::middleware(['auth:sanctum', 'not-suspended', 'verified'])->group(function
 
     // Reviews
     Route::get('/my/reviews', [ReviewController::class, 'myReviews']);
-    Route::post('/orders/{orderId}/review', [ReviewController::class, 'store']);
+    Route::post('/orders/{orderId}/review', [ReviewController::class, 'store'])->middleware('throttle:10,1');
 
     // Orders
     Route::get('/my/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
-    Route::post('/orders', [OrderController::class, 'store']);
-    Route::post('/orders/{order}/payment-proof', [OrderController::class, 'paymentProof']);
-    Route::post('/orders/{order}/mark-transferring', [OrderController::class, 'markTransferring']);
-    Route::post('/orders/{order}/confirm-receipt', [OrderController::class, 'confirmReceipt']);
-    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel']);
-    Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute']);
+    Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:10,1');
+    Route::post('/orders/{order}/payment-proof', [OrderController::class, 'paymentProof'])->middleware('throttle:10,1');
+    Route::post('/orders/{order}/mark-transferring', [OrderController::class, 'markTransferring'])->middleware('throttle:20,1');
+    Route::post('/orders/{order}/confirm-receipt', [OrderController::class, 'confirmReceipt'])->middleware('throttle:20,1');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:10,1');
+    Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->middleware('throttle:10,1');
     Route::get('/orders/{order}/timeline', [OrderController::class, 'timeline']);
 
     // Wallet
     Route::get('/wallet', [WalletController::class, 'show']);
     Route::get('/wallet/transactions', [WalletController::class, 'transactions']);
     Route::get('/wallet/withdrawals', [WalletController::class, 'withdrawals']);
-    Route::post('/wallet/withdrawals', [WalletController::class, 'storeWithdrawal']);
-    Route::post('/wallet/withdrawals/{withdrawal}/cancel', [WalletController::class, 'cancelWithdrawal']);
+    Route::post('/wallet/withdrawals', [WalletController::class, 'storeWithdrawal'])->middleware('throttle:5,1');
+    Route::post('/wallet/withdrawals/{withdrawal}/cancel', [WalletController::class, 'cancelWithdrawal'])->middleware('throttle:10,1');
 
     // Seller verification
     Route::get('/seller/verification', [SellerVerificationController::class, 'show']);
-    Route::post('/seller/verification', [SellerVerificationController::class, 'store']);
+    Route::post('/seller/verification', [SellerVerificationController::class, 'store'])->middleware('throttle:5,1');
 
     // Messages
     Route::get('/conversations', [ConversationController::class, 'index']);
-    Route::post('/conversations', [ConversationController::class, 'store']);
-    Route::post('/conversations/support', [ConversationController::class, 'startSupport']);
+    Route::post('/conversations', [ConversationController::class, 'store'])->middleware('throttle:20,1');
+    Route::post('/conversations/support', [ConversationController::class, 'startSupport'])->middleware('throttle:10,1');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show']);
     Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages']);
-    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'storeMessage']);
+    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])->middleware('throttle:60,1');
     Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead']);
 
     // Notifications

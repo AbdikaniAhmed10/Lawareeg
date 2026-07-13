@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -26,7 +27,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
-        'phone',
         'bio',
         'avatar',
         'country',
@@ -48,6 +48,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verification_code',
     ];
 
     /**
@@ -59,6 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_expires_at' => 'datetime',
             'password' => 'hashed',
             'is_verified_seller' => 'boolean',
             'is_suspended' => 'boolean',
@@ -78,9 +80,55 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'seller';
     }
 
+    /** Admins are treated as verified — no email OTP required. */
+    public function hasVerifiedEmail(): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return ! is_null($this->email_verified_at);
+    }
+
+    /**
+     * Generate a 6-digit code, store a hash, and email the plain code.
+     */
     public function sendEmailVerificationNotification(): void
     {
-        $this->notify(new VerifyEmailNotification);
+        if ($this->isAdmin() || $this->hasVerifiedEmail()) {
+            return;
+        }
+
+        $code = (string) random_int(100000, 999999);
+
+        $this->forceFill([
+            'email_verification_code' => Hash::make($code),
+            'email_verification_expires_at' => now()->addMinutes(15),
+        ])->save();
+
+        $this->notify(new VerifyEmailNotification($code));
+    }
+
+    public function clearEmailVerificationCode(): void
+    {
+        $this->forceFill([
+            'email_verification_code' => null,
+            'email_verification_expires_at' => null,
+        ])->save();
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at' => $this->freshTimestamp(),
+            'email_verification_code' => null,
+            'email_verification_expires_at' => null,
+        ])->save();
+    }
+
+    public function getEmailForVerification(): string
+    {
+        return (string) $this->email;
     }
 
     public function listings(): HasMany

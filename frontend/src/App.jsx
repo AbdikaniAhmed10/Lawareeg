@@ -16,7 +16,6 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import VerifyEmailNotice from './pages/auth/VerifyEmailNotice'
-import VerifyEmailConfirm from './pages/auth/VerifyEmailConfirm'
 
 import Overview from './pages/dashboard/Overview'
 import Profile from './pages/dashboard/Profile'
@@ -78,7 +77,6 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify-email" element={<VerifyEmailNotice />} />
-      <Route path="/verify-email/:id/:hash" element={<VerifyEmailConfirm />} />
 
       {/* Buyer / seller dashboard */}
       <Route path="/dashboard" element={<DashboardLayout />}>

@@ -1,16 +1,22 @@
 import { useState } from 'react'
-import { User, Mail, Phone, Lock, Save } from 'lucide-react'
+import { User, Mail, Lock, Save, MapPin } from 'lucide-react'
 import Input from '../../components/ui/Input'
+import Select from '../../components/ui/Select'
 import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
 import { useAuthStore } from '../../store/authStore'
 import authApi from '../../api/auth'
 import { initials } from '../../lib/format'
 import BackButton from '../../components/ui/BackButton'
+import { COUNTRIES } from '../../lib/countries'
 
 export default function Profile() {
   const { user, setUser } = useAuthStore()
-  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '' })
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    country: user?.country || '',
+  })
   const [passwordForm, setPasswordForm] = useState({ current_password: '', password: '', password_confirmation: '' })
   const [status, setStatus] = useState(null)
   const [passwordStatus, setPasswordStatus] = useState(null)
@@ -63,6 +69,12 @@ export default function Profile() {
           <div>
             <p className="font-medium text-ink">{user?.name}</p>
             <p className="text-sm text-ink-soft">{user?.email}</p>
+            {user?.country && (
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-soft">
+                <MapPin className="size-3.5" />
+                {user.country}
+              </p>
+            )}
           </div>
         </div>
 
@@ -71,7 +83,21 @@ export default function Profile() {
         <form onSubmit={handleProfileSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input label="Full name" icon={User} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <Input label="Email address" type="email" icon={Mail} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <Input label="Phone number" icon={Phone} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} containerClassName="sm:col-span-2" />
+          <Select
+            label="Country"
+            name="country"
+            placeholder="Select your country"
+            value={form.country}
+            onChange={(e) => setForm({ ...form, country: e.target.value })}
+            required
+            containerClassName="sm:col-span-2"
+          >
+            {COUNTRIES.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+          </Select>
           <div className="sm:col-span-2">
             <Button type="submit" loading={loading}>
               <Save className="size-4" /> Save changes

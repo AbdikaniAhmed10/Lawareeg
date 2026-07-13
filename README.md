@@ -77,7 +77,7 @@ App: [http://localhost:5173](http://localhost:5173)
 
 Default commission: **10%** (configurable in Admin → Settings).
 
-Demo accounts are **email-verified** by the seeder. New registrations must verify email before the dashboard opens (configure SMTP in `.env`).
+Demo accounts are **email-verified** by the seeder. New registrations get a **6-digit code** by email and must enter it on `/verify-email` before the dashboard opens (configure Gmail SMTP / App Password in `backend/.env`).
 
 ## Docker (recommended for Contabo VPS)
 
