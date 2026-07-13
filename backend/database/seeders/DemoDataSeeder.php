@@ -13,19 +13,7 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@lawareeg.com'],
-            [
-                'name' => 'Lawareeg Admin',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'email_verified_at' => now(),
-                'is_verified_seller' => true,
-                'seller_verification_status' => 'approved',
-                'referral_code' => Str::upper(Str::random(8)),
-            ]
-        );
-        $admin->wallet()->firstOrCreate([]);
+        // Admin is created only by AdminUserSeeder (ADMIN_* env) — never here.
 
         $buyer = User::updateOrCreate(
             ['email' => 'buyer@lawareeg.com'],

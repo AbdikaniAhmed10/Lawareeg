@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'email', Rule::unique('users', 'email')->ignore($this->route('user'))],
-            'role' => ['sometimes', 'in:buyer,seller,admin'],
+            'role' => ['sometimes', 'in:buyer,seller'],
             'country' => ['sometimes', 'nullable', 'string', 'max:100'],
         ];
     }

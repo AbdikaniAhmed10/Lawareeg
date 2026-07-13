@@ -40,7 +40,14 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $user->update($request->validated());
+        $data = $request->validated();
+
+        // Admins are seeded only — never change role via API.
+        if ($user->isAdmin() || (($data['role'] ?? null) === 'admin')) {
+            unset($data['role']);
+        }
+
+        $user->update($data);
 
         return response()->json([
             'data' => new UserResource($user->fresh()),
@@ -49,6 +56,12 @@ class UserController extends Controller
 
     public function suspend(User $user)
     {
+        if ($user->isAdmin()) {
+            throw ValidationException::withMessages([
+                'user' => ['Admin accounts cannot be suspended.'],
+            ]);
+        }
+
         $user->update(['is_suspended' => true, 'suspended_at' => now()]);
 
         return response()->json([
@@ -67,19 +80,16 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
-        if ($request->user()->id === $user->id) {
+        if ($user->isAdmin()) {
             throw ValidationException::withMessages([
-                'user' => ['You cannot delete your own admin account.'],
+                'user' => ['Admin accounts cannot be deleted. They are managed by the seeder only.'],
             ]);
         }
 
-        if ($user->isAdmin()) {
-            $adminCount = User::query()->where('role', 'admin')->count();
-            if ($adminCount <= 1) {
-                throw ValidationException::withMessages([
-                    'user' => ['Cannot delete the last admin account.'],
-                ]);
-            }
+        if ($request->user()->id === $user->id) {
+            throw ValidationException::withMessages([
+                'user' => ['You cannot delete your own account.'],
+            ]);
         }
 
         $user->tokens()->delete();

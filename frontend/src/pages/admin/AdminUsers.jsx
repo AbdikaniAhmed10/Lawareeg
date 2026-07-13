@@ -85,6 +85,7 @@ export default function AdminUsers() {
               {users.map((user) => {
                 const suspended = user.is_suspended || user.status === 'suspended'
                 const verified = user.is_verified_seller || user.verified
+                const isAdminUser = user.role === 'admin'
 
                 return (
                   <tr key={user.id} className="border-b border-border last:border-0 hover:bg-sand-deep/30">
@@ -116,7 +117,9 @@ export default function AdminUsers() {
                       )}
                     </td>
                     <td className="px-5 py-3.5">
-                      <Badge variant={suspended ? 'danger' : 'success'}>{suspended ? 'suspended' : 'active'}</Badge>
+                      <Badge variant={suspended && !isAdminUser ? 'danger' : 'success'}>
+                        {suspended && !isAdminUser ? 'suspended' : 'active'}
+                      </Badge>
                     </td>
                     <td className="px-5 py-3.5 text-ink-soft">{formatDate(user.created_at)}</td>
                     <td className="px-5 py-3.5 text-right">
@@ -124,19 +127,23 @@ export default function AdminUsers() {
                         <Button as={Link} to={`/users/${user.id}`} size="sm" variant="ghost">
                           <ExternalLink className="size-4" /> Profile
                         </Button>
-                        {suspended ? (
-                          <Button size="sm" variant="ghost" onClick={() => reinstateMutation.mutate(user.id)}>
-                            <ShieldCheck className="size-4 text-success" /> Reinstate
-                          </Button>
-                        ) : (
-                          <Button size="sm" variant="ghost" onClick={() => suspendMutation.mutate(user.id)}>
-                            <ShieldOff className="size-4 text-danger" /> Suspend
-                          </Button>
-                        )}
-                        {me?.id !== user.id && (
-                          <Button size="sm" variant="ghost" title="Delete user" onClick={() => setDeleteTarget(user)}>
-                            <Trash2 className="size-4 text-danger" />
-                          </Button>
+                        {!isAdminUser && (
+                          <>
+                            {suspended ? (
+                              <Button size="sm" variant="ghost" onClick={() => reinstateMutation.mutate(user.id)}>
+                                <ShieldCheck className="size-4 text-success" /> Reinstate
+                              </Button>
+                            ) : (
+                              <Button size="sm" variant="ghost" onClick={() => suspendMutation.mutate(user.id)}>
+                                <ShieldOff className="size-4 text-danger" /> Suspend
+                              </Button>
+                            )}
+                            {me?.id !== user.id && (
+                              <Button size="sm" variant="ghost" title="Delete user" onClick={() => setDeleteTarget(user)}>
+                                <Trash2 className="size-4 text-danger" />
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>

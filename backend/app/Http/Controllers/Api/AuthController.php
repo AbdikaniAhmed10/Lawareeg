@@ -67,6 +67,11 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->isAdmin() && $user->is_suspended) {
+            $user->forceFill(['is_suspended' => false, 'suspended_at' => null])->save();
+            $user->refresh();
+        }
+
         if ($user->is_suspended) {
             throw ValidationException::withMessages([
                 'email' => ['Your account has been suspended. Please contact support.'],
