@@ -71,25 +71,28 @@ class AssetPreviewService
 
     private function resolveAvatar(string $platform, ?string $handle, string $url, ?string $ogImage): ?string
     {
-        // 1) Dedicated avatar providers (most reliable for social profiles)
+        // Social networks often block server-side HEAD/GET. Prefer unavatar URLs
+        // and let the browser / later download step resolve the real image.
         if ($handle) {
             $candidates = match ($platform) {
                 'youtube' => [
-                    'https://unavatar.io/youtube/'.$handle.'?fallback=false',
-                    'https://unavatar.io/youtube/@'.$handle.'?fallback=false',
+                    'https://unavatar.io/youtube/@'.rawurlencode($handle),
+                    'https://unavatar.io/youtube/'.rawurlencode($handle),
                 ],
                 'tiktok' => [
-                    'https://unavatar.io/tiktok/'.$handle.'?fallback=false',
+                    'https://unavatar.io/tiktok/@'.rawurlencode($handle),
+                    'https://unavatar.io/tiktok/'.rawurlencode($handle),
                 ],
                 'instagram' => [
-                    'https://unavatar.io/instagram/'.$handle.'?fallback=false',
+                    'https://unavatar.io/instagram/'.rawurlencode($handle),
                 ],
                 'twitter' => [
-                    'https://unavatar.io/x/'.$handle.'?fallback=false',
-                    'https://unavatar.io/twitter/'.$handle.'?fallback=false',
+                    'https://unavatar.io/x/'.rawurlencode($handle),
+                    'https://unavatar.io/twitter/'.rawurlencode($handle),
                 ],
                 'facebook' => [
-                    'https://unavatar.io/facebook/'.$handle.'?fallback=false',
+                    'https://graph.facebook.com/'.rawurlencode($handle).'/picture?type=large',
+                    'https://unavatar.io/facebook/'.rawurlencode($handle),
                 ],
                 default => [],
             };
@@ -99,19 +102,24 @@ class AssetPreviewService
                     return $candidate;
                 }
             }
+
+            // Trust first social candidate even when CDN blocks our server probe.
+            if ($candidates !== []) {
+                return $candidates[0];
+            }
         }
 
-        // 2) Open Graph image from the page itself
         if ($ogImage) {
             return $ogImage;
         }
 
-        // 3) Generic unavatar for any public website favicon/logo
         if (in_array($platform, ['website', 'domain', 'saas', 'app', 'other'], true)) {
-            $generic = 'https://unavatar.io/'.rawurlencode($url).'?fallback=false';
+            $generic = 'https://unavatar.io/'.rawurlencode($url);
             if ($this->urlLooksLikeImage($generic)) {
                 return $generic;
             }
+
+            return $generic;
         }
 
         return null;
@@ -155,10 +163,44 @@ class AssetPreviewService
 
         return match ($platform) {
             'youtube' => $this->youtubeHandle($parts, $url),
-            'tiktok', 'instagram', 'twitter' => ltrim($parts[0] ?? '', '@') ?: null,
-            'facebook' => ltrim($parts[0] ?? '', '@') ?: null,
+            'tiktok' => $this->tiktokHandle($parts),
+            'instagram', 'twitter' => ltrim($parts[0] ?? '', '@') ?: null,
+            'facebook' => $this->facebookHandle($parts, $url),
             default => null,
         };
+    }
+
+    private function tiktokHandle(array $parts): ?string
+    {
+        foreach ($parts as $part) {
+            if ($part === '' || in_array($part, ['video', 'tag', 'music', 'live'], true)) {
+                continue;
+            }
+
+            return ltrim($part, '@') ?: null;
+        }
+
+        return null;
+    }
+
+    private function facebookHandle(array $parts, string $url): ?string
+    {
+        if (($parts[0] ?? '') === 'profile.php') {
+            parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+            return isset($query['id']) ? (string) $query['id'] : null;
+        }
+
+        $skip = ['pages', 'groups', 'watch', 'share', 'photo', 'permalink.php'];
+        foreach ($parts as $part) {
+            if ($part === '' || in_array($part, $skip, true)) {
+                continue;
+            }
+
+            return ltrim($part, '@') ?: null;
+        }
+
+        return null;
     }
 
     private function youtubeHandle(array $parts, string $url): ?string

@@ -78,7 +78,7 @@ export default function Home() {
   }
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="w-full overflow-x-clip">
       <section className="relative w-full atmosphere-gradient">
         <div className="mx-auto w-full max-w-5xl px-4 py-14 text-center sm:px-6 sm:py-28 lg:px-8">
           <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary sm:mb-6 sm:gap-2 sm:px-4 sm:py-1.5 sm:text-xs">

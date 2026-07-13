@@ -51,7 +51,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur-lg supports-[backdrop-filter]:bg-surface/90">
       <div className="mx-auto flex h-16 max-w-7xl min-w-0 items-center justify-between gap-2 px-3 sm:h-18 sm:gap-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4 sm:gap-8">
           <BrandLogo to={isAdmin ? '/admin' : '/'} size="sm" />
