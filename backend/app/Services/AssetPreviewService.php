@@ -13,6 +13,9 @@ class AssetPreviewService
     public function preview(string $url, ?string $categorySlug = null): array
     {
         $url = $this->normalizeUrl($url);
+        $url = $this->resolveShareUrl($url);
+        $url = $this->stripTrackingParams($url);
+
         $host = parse_url($url, PHP_URL_HOST) ?: '';
         $platform = $this->detectPlatform($host, $categorySlug);
         $handle = $this->extractHandle($url, $platform);
@@ -20,11 +23,15 @@ class AssetPreviewService
         $meta = $this->fetchOpenGraph($url);
         $avatar = $this->resolveAvatar($platform, $handle, $url, $meta['image'] ?? null);
 
+        // If share link did not expose a handle, still use OG title/image when available.
+        $title = $meta['title']
+            ?? ($handle ? ltrim($handle, '@') : null);
+
         return [
             'url' => $url,
             'platform' => $platform,
             'handle' => $handle,
-            'title' => $meta['title'] ?? ($handle ? ltrim($handle, '@') : null),
+            'title' => $title,
             'description' => $meta['description'] ?? null,
             'avatar_url' => $avatar,
             'ownership_instructions' => OwnershipInstructions::forCategorySlug($categorySlug ?: $platform),
@@ -71,8 +78,6 @@ class AssetPreviewService
 
     private function resolveAvatar(string $platform, ?string $handle, string $url, ?string $ogImage): ?string
     {
-        // Social networks often block server-side HEAD/GET. Prefer unavatar URLs
-        // and let the browser / later download step resolve the real image.
         if ($handle) {
             $candidates = match ($platform) {
                 'youtube' => [
@@ -103,7 +108,6 @@ class AssetPreviewService
                 }
             }
 
-            // Trust first social candidate even when CDN blocks our server probe.
             if ($candidates !== []) {
                 return $candidates[0];
             }
@@ -114,12 +118,7 @@ class AssetPreviewService
         }
 
         if (in_array($platform, ['website', 'domain', 'saas', 'app', 'other'], true)) {
-            $generic = 'https://unavatar.io/'.rawurlencode($url);
-            if ($this->urlLooksLikeImage($generic)) {
-                return $generic;
-            }
-
-            return $generic;
+            return 'https://unavatar.io/'.rawurlencode($url);
         }
 
         return null;
@@ -134,7 +133,6 @@ class AssetPreviewService
                 ->head($url);
 
             if (! $response->successful()) {
-                // Some CDNs don't allow HEAD — try a tiny GET range
                 $response = Http::timeout(12)
                     ->withHeaders(array_merge($this->browserHeaders(), ['Range' => 'bytes=0-1023']))
                     ->get($url);
@@ -164,7 +162,8 @@ class AssetPreviewService
         return match ($platform) {
             'youtube' => $this->youtubeHandle($parts, $url),
             'tiktok' => $this->tiktokHandle($parts),
-            'instagram', 'twitter' => ltrim($parts[0] ?? '', '@') ?: null,
+            'instagram' => $this->instagramHandle($parts),
+            'twitter' => $this->twitterHandle($parts),
             'facebook' => $this->facebookHandle($parts, $url),
             default => null,
         };
@@ -172,12 +171,54 @@ class AssetPreviewService
 
     private function tiktokHandle(array $parts): ?string
     {
+        $skip = ['video', 'tag', 'music', 'live', 'photo', 'find', 'foryou', 'following', 't'];
+
         foreach ($parts as $part) {
-            if ($part === '' || in_array($part, ['video', 'tag', 'music', 'live'], true)) {
+            $clean = ltrim($part, '@');
+            if ($clean === '' || in_array(Str::lower($part), $skip, true) || in_array(Str::lower($clean), $skip, true)) {
                 continue;
             }
+            // Share short codes / video ids are usually alnum blobs without letters-only handles
+            if (preg_match('/^\d+$/', $clean)) {
+                continue;
+            }
+            if (str_starts_with($part, '@') || preg_match('/^[A-Za-z0-9._]{2,64}$/', $clean)) {
+                return $clean;
+            }
+        }
 
-            return ltrim($part, '@') ?: null;
+        return null;
+    }
+
+    private function instagramHandle(array $parts): ?string
+    {
+        $skip = ['p', 'reel', 'reels', 'stories', 'share', 'tv', 'explore', 'accounts', 'direct'];
+
+        foreach ($parts as $part) {
+            $clean = ltrim($part, '@');
+            if ($clean === '' || in_array(Str::lower($clean), $skip, true)) {
+                continue;
+            }
+            if (preg_match('/^[A-Za-z0-9._]{2,64}$/', $clean)) {
+                return $clean;
+            }
+        }
+
+        return null;
+    }
+
+    private function twitterHandle(array $parts): ?string
+    {
+        $skip = ['i', 'intent', 'share', 'status', 'hashtag', 'search', 'home', 'explore'];
+
+        foreach ($parts as $part) {
+            $clean = ltrim($part, '@');
+            if ($clean === '' || in_array(Str::lower($clean), $skip, true)) {
+                continue;
+            }
+            if (preg_match('/^[A-Za-z0-9_]{1,50}$/', $clean)) {
+                return $clean;
+            }
         }
 
         return null;
@@ -191,13 +232,18 @@ class AssetPreviewService
             return isset($query['id']) ? (string) $query['id'] : null;
         }
 
-        $skip = ['pages', 'groups', 'watch', 'share', 'photo', 'permalink.php'];
-        foreach ($parts as $part) {
-            if ($part === '' || in_array($part, $skip, true)) {
+        $skip = ['pages', 'groups', 'watch', 'share', 'photo', 'permalink.php', 'story.php', 'reel', 'reels', 'people', 'profile'];
+        foreach ($parts as $i => $part) {
+            if ($part === '' || in_array(Str::lower($part), $skip, true)) {
                 continue;
             }
-
-            return ltrim($part, '@') ?: null;
+            // /people/Name/ID
+            if (Str::lower($part) === 'people' && ! empty($parts[$i + 2])) {
+                return (string) $parts[$i + 2];
+            }
+            if (preg_match('/^[A-Za-z0-9.\-]{2,}$/', $part)) {
+                return ltrim($part, '@');
+            }
         }
 
         return null;
@@ -205,7 +251,6 @@ class AssetPreviewService
 
     private function youtubeHandle(array $parts, string $url): ?string
     {
-        // @handle, /channel/UCxxx, /c/Name, /user/Name
         if (isset($parts[0]) && str_starts_with($parts[0], '@')) {
             return ltrim($parts[0], '@');
         }
@@ -218,11 +263,16 @@ class AssetPreviewService
             return $parts[1];
         }
 
-        if (! empty($parts[0]) && ! in_array($parts[0], ['watch', 'shorts', 'playlist', 'feed'], true)) {
+        // youtu.be / watch / shorts are videos — no channel handle
+        if (in_array($parts[0] ?? '', ['watch', 'shorts', 'playlist', 'feed', 'embed', 'live'], true)) {
+            return null;
+        }
+
+        if (! empty($parts[0]) && preg_match('/^[A-Za-z0-9._\-]{2,}$/', $parts[0])) {
             return ltrim($parts[0], '@');
         }
 
-        if (preg_match('/[@\/]([A-Za-z0-9._-]{2,})/', $url, $m)) {
+        if (preg_match('/[@\/]([A-Za-z0-9._\-]{2,})/', $url, $m)) {
             return ltrim($m[1], '@');
         }
 
@@ -232,9 +282,9 @@ class AssetPreviewService
     private function fetchOpenGraph(string $url): array
     {
         try {
-            $response = Http::timeout(12)
+            $response = Http::timeout(15)
                 ->withHeaders($this->browserHeaders())
-                ->withOptions(['allow_redirects' => true])
+                ->withOptions(['allow_redirects' => ['max' => 8]])
                 ->get($url);
 
             if (! $response->successful()) {
@@ -270,9 +320,9 @@ class AssetPreviewService
         return match (true) {
             str_contains($host, 'youtube') || str_contains($host, 'youtu.be') || str_contains($slug, 'youtube') => 'youtube',
             str_contains($host, 'tiktok') || str_contains($slug, 'tiktok') => 'tiktok',
-            str_contains($host, 'instagram') || str_contains($slug, 'instagram') => 'instagram',
-            str_contains($host, 'facebook') || str_contains($host, 'fb.com') || str_contains($slug, 'facebook') => 'facebook',
-            str_contains($host, 'twitter') || str_contains($host, 'x.com') || str_contains($slug, 'twitter') => 'twitter',
+            str_contains($host, 'instagram') || str_contains($host, 'instagr.am') || str_contains($slug, 'instagram') => 'instagram',
+            str_contains($host, 'facebook') || str_contains($host, 'fb.com') || str_contains($host, 'fb.watch') || str_contains($slug, 'facebook') => 'facebook',
+            str_contains($host, 'twitter') || str_contains($host, 'x.com') || str_contains($host, 't.co') || str_contains($slug, 'twitter') => 'twitter',
             str_contains($slug, 'domain') => 'domain',
             str_contains($slug, 'website') || str_contains($slug, 'blog') || str_contains($slug, 'e-commerce') => 'website',
             str_contains($slug, 'app') => 'app',
@@ -299,12 +349,156 @@ class AssetPreviewService
 
     private function normalizeUrl(string $url): string
     {
-        $url = trim($url);
+        $url = trim(html_entity_decode($url, ENT_QUOTES | ENT_HTML5));
+        // App paste sometimes includes surrounding quotes or zero-width chars
+        $url = trim($url, " \t\n\r\0\x0B\"'`");
+        $url = preg_replace('/\s+/', '', $url) ?: $url;
+
         if (! preg_match('#^https?://#i', $url)) {
             $url = 'https://'.$url;
         }
 
         return $url;
+    }
+
+    /**
+     * Follow short / app share links (vm.tiktok.com, fb.me, t.co, instagr.am, …)
+     * so we land on a profile/channel URL we can parse.
+     */
+    private function resolveShareUrl(string $url): string
+    {
+        $host = Str::lower((string) parse_url($url, PHP_URL_HOST));
+        $needsResolve = (bool) preg_match(
+            '/(^|\.)(vm\.tiktok\.com|vt\.tiktok\.com|fb\.me|fb\.watch|t\.co|bit\.ly|tinyurl\.com|instagr\.am|lnkd\.in|youtu\.be)$/i',
+            $host
+        ) || str_contains($host, 'm.facebook.com')
+            || str_contains($host, 'lm.facebook.com')
+            || str_contains($url, 'share/')
+            || str_contains($url, '/s/')
+            || str_contains($url, 'igsh')
+            || str_contains($url, 'igshid');
+
+        // Always try one lightweight resolve for mobile share hosts / tracking URLs
+        if (! $needsResolve && ! $this->looksLikeShortSocialShare($url, $host)) {
+            return $url;
+        }
+
+        try {
+            $response = Http::timeout(12)
+                ->withHeaders($this->browserHeaders())
+                ->withOptions([
+                    'allow_redirects' => false,
+                    'http_errors' => false,
+                ])
+                ->head($url);
+
+            $location = $response->header('Location');
+            if (! $location && in_array($response->status(), [0, 403, 405, 501], true)) {
+                $finalUrl = $url;
+                $response = Http::timeout(15)
+                    ->withHeaders($this->browserHeaders())
+                    ->withOptions([
+                        'allow_redirects' => ['max' => 8],
+                        'http_errors' => false,
+                        'on_stats' => function ($stats) use (&$finalUrl) {
+                            if (is_object($stats) && method_exists($stats, 'getEffectiveUri')) {
+                                $uri = $stats->getEffectiveUri();
+                                if ($uri) {
+                                    $finalUrl = (string) $uri;
+                                }
+                            }
+                        },
+                    ])
+                    ->get($url);
+
+                if ($finalUrl !== '' && $finalUrl !== $url) {
+                    return $this->normalizeUrl($finalUrl);
+                }
+
+                // Parse meta refresh / canonical / og:url from body for awkward share pages
+                $html = $response->body();
+                if (preg_match('/property=["\']og:url["\'][^>]+content=["\']([^"\']+)["\']/i', $html, $m)
+                    || preg_match('/content=["\']([^"\']+)["\'][^>]+property=["\']og:url["\']/i', $html, $m)
+                    || preg_match('/rel=["\']canonical["\'][^>]+href=["\']([^"\']+)["\']/i', $html, $m)
+                    || preg_match('/href=["\']([^"\']+)["\'][^>]+rel=["\']canonical["\']/i', $html, $m)) {
+                    return $this->normalizeUrl(html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5));
+                }
+            }
+
+            // Walk redirects manually (HEAD)
+            $current = $url;
+            for ($i = 0; $i < 8; $i++) {
+                $response = Http::timeout(10)
+                    ->withHeaders($this->browserHeaders())
+                    ->withOptions(['allow_redirects' => false, 'http_errors' => false])
+                    ->head($current);
+
+                $status = $response->status();
+                $location = $response->header('Location');
+                if (! $location || ! in_array($status, [301, 302, 303, 307, 308], true)) {
+                    break;
+                }
+
+                $next = $this->absoluteUrl($location, $current) ?: $location;
+                $next = $this->normalizeUrl($next);
+                if ($next === $current) {
+                    break;
+                }
+                $current = $next;
+            }
+
+            return $current;
+        } catch (Throwable) {
+            return $url;
+        }
+    }
+
+    private function looksLikeShortSocialShare(string $url, string $host): bool
+    {
+        if (preg_match('/tiktok\.com\/[A-Za-z0-9]{5,20}\/?$/i', $url)) {
+            return true;
+        }
+
+        return str_contains($host, 'tiktok')
+            && ! str_contains($url, '@')
+            && ! str_contains($url, '/video/');
+    }
+
+    private function stripTrackingParams(string $url): string
+    {
+        $parts = parse_url($url);
+        if ($parts === false || empty($parts['host'])) {
+            return $url;
+        }
+
+        $query = [];
+        if (! empty($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+
+        $drop = [
+            'igsh', 'igshid', 'img_index', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+            'fbclid', 'mc_eid', 'si', '_t', '_r', 'tt_from', 'is_from_webapp', 'sender_device',
+            'feature', 'app', 'ref', 'refsrc', 'mibextid', 'rdid', 'share_app_id', 'share_id',
+            'share_link_id', 'share_item_type', 'timestamp', 'social_sharing', 'source',
+        ];
+
+        foreach ($drop as $key) {
+            unset($query[$key]);
+        }
+
+        $scheme = $parts['scheme'] ?? 'https';
+        $host = $parts['host'];
+        $path = $parts['path'] ?? '/';
+        $built = $scheme.'://'.$host.$path;
+        if ($query !== []) {
+            $built .= '?'.http_build_query($query);
+        }
+        if (! empty($parts['fragment']) && ! str_starts_with($parts['fragment'], '!')) {
+            // keep meaningful fragments rarely; drop app junk
+        }
+
+        return $built;
     }
 
     private function browserHeaders(): array

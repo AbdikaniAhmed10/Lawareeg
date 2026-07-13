@@ -59,14 +59,16 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
   const update = (key, value) => setForm((f) => ({ ...f, [key]: value }))
 
   useEffect(() => {
-    const url = form.asset_url?.trim()
-    if (!url || url.length < 8) {
+    const raw = form.asset_url?.trim()
+    if (!raw || raw.length < 8) {
       setPreview(null)
       setPreviewError('')
       return undefined
     }
 
-    // Keep existing avatar while editing unless URL changes trigger a new fetch.
+    // Clean copy/paste from mobile share sheets (quotes, newlines, tracking noise)
+    const url = raw.replace(/^['"`]+|['"`]+$/g, '').replace(/\s+/g, '')
+
     const timer = setTimeout(async () => {
       setPreviewLoading(true)
       setPreviewError('')
@@ -77,6 +79,9 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
         })
         const data = res?.data
         setPreview(data || null)
+        if (data?.url && data.url !== form.asset_url) {
+          setForm((f) => ({ ...f, asset_url: data.url }))
+        }
         if (data?.avatar_url) {
           setForm((f) => ({ ...f, avatar_url: data.avatar_url }))
         }
@@ -84,15 +89,19 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
           setForm((f) => (f.title ? f : { ...f, title: data.title }))
         }
         if (!data?.avatar_url) {
-          setPreviewError('Could not find a profile picture automatically. You can still continue and upload screenshots.')
+          setPreviewError(
+            'Could not find a profile picture from this share link. Paste the public profile URL (e.g. tiktok.com/@user) or continue with screenshots.'
+          )
         }
       } catch {
         setPreview(null)
-        setPreviewError('Could not fetch this profile right now. Check the link and try again, or continue with screenshots.')
+        setPreviewError(
+          'Could not fetch this shared link. Short app links sometimes fail — open the profile in a browser, copy the full profile URL, and paste that instead.'
+        )
       } finally {
         setPreviewLoading(false)
       }
-    }, 700)
+    }, 900)
 
     return () => clearTimeout(timer)
   }, [form.asset_url, form.category])
@@ -119,7 +128,8 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
       <div className="rounded-2xl border border-border bg-surface p-6">
         <h2 className="font-display text-lg font-medium text-ink">Asset profile link</h2>
         <p className="mt-1 text-sm text-ink-soft">
-          Paste the public profile / channel / website URL. We will try to fetch its avatar automatically.
+          Paste the public profile / channel / website URL. App share links (TikTok vm.tiktok.com, Instagram igsh=, etc.)
+          are expanded automatically when possible.
         </p>
 
         <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
