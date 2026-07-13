@@ -64,70 +64,76 @@ export default function Home() {
   }
 
   return (
-    <div>
-      {/* HERO */}
-      <section className="relative overflow-hidden atmosphere-gradient">
-        <div className="mx-auto flex max-w-5xl flex-col items-center px-4 py-24 text-center sm:px-6 sm:py-32 lg:px-8">
-          <span className="animate-fade-in-up mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
-            <ShieldCheck className="size-3.5" /> Escrow-protected trades, every time
+    <div className="w-full overflow-x-hidden">
+      {/* HERO — block layout (not flex-center) so text wraps on phones */}
+      <section className="relative w-full atmosphere-gradient">
+        <div className="mx-auto w-full max-w-5xl px-4 py-14 text-center sm:px-6 sm:py-28 lg:px-8">
+          <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary sm:mb-6 sm:gap-2 sm:px-4 sm:py-1.5 sm:text-xs">
+            <ShieldCheck className="size-3.5 shrink-0" />
+            <span>Escrow-protected trades, every time</span>
           </span>
 
-          <div className="animate-fade-in-up stagger-1 flex flex-col items-center gap-5">
+          <div className="mx-auto mb-4 flex justify-center sm:mb-5">
             <BrandLogo asLink={false} size="hero" showWordmark={false} imgClassName="rounded-2xl shadow-lg" />
-            <h1 className="font-display text-6xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-7xl lg:text-8xl">
-              Lawareeg
-            </h1>
           </div>
 
-          <p className="animate-fade-in-up stagger-2 mt-6 max-w-2xl font-display text-2xl font-medium leading-snug text-ink sm:text-3xl">
+          <h1 className="font-display text-4xl font-semibold leading-none tracking-tight text-ink sm:text-6xl lg:text-8xl">
+            Lawareeg
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-[22rem] text-pretty font-display text-lg font-medium leading-snug text-ink sm:mt-6 sm:max-w-2xl sm:text-3xl">
             The trusted marketplace to buy and sell digital assets.
           </p>
-          <p className="animate-fade-in-up stagger-2 mt-3 max-w-xl text-base text-ink-soft sm:text-lg">
+          <p className="mx-auto mt-3 max-w-[22rem] text-pretty text-sm leading-relaxed text-ink-soft sm:max-w-xl sm:text-lg">
             Facebook pages, Instagram &amp; TikTok accounts, YouTube channels, websites, domains, apps and online
             businesses — every trade protected by manual escrow.
           </p>
 
-          <div className="animate-fade-in-up stagger-3 mt-9 flex flex-col items-center gap-3 sm:flex-row">
-            <Button as={Link} to="/browse" size="lg">
+          <div className="mx-auto mt-7 flex w-full max-w-sm flex-col gap-3 sm:mt-9 sm:max-w-md sm:flex-row sm:justify-center">
+            <Button as={Link} to="/browse" size="lg" className="w-full sm:w-auto">
               Browse listings <ArrowRight className="size-4" />
             </Button>
-            <Button as={Link} to="/dashboard/my-listings/new" size="lg" variant="secondary">
+            <Button as={Link} to="/dashboard/my-listings/new" size="lg" variant="secondary" className="w-full sm:w-auto">
               Sell an asset
             </Button>
           </div>
 
           <form
             onSubmit={handleSearch}
-            className="animate-fade-in-up stagger-4 mt-10 flex w-full max-w-xl items-center gap-2 rounded-2xl border border-border bg-surface p-2 shadow-lg"
+            className="mx-auto mt-7 flex w-full max-w-sm items-center gap-2 rounded-2xl border border-border bg-surface p-1.5 shadow-lg sm:mt-10 sm:max-w-xl sm:p-2"
           >
-            <Search className="ml-2 size-5 shrink-0 text-ink-soft/60" />
+            <Search className="ml-2 size-4 shrink-0 text-ink-soft/60 sm:size-5" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search “Instagram page”, “SaaS”, “domain”…"
-              className="h-11 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-soft/50"
+              placeholder="Search assets…"
+              className="h-10 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-soft/50 sm:h-11"
             />
-            <Button type="submit">Search</Button>
+            <Button type="submit" size="sm" className="shrink-0 sm:h-11 sm:px-5">
+              Search
+            </Button>
           </form>
 
-          <div className="animate-fade-in-up stagger-4 mt-10 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-sm text-ink-soft">
-            <span><strong className="text-ink">1,200+</strong> assets sold</span>
-            <span><strong className="text-ink">$4.8M+</strong> in escrow processed</span>
-            <span><strong className="text-ink">4.8/5</strong> average rating</span>
+          <div className="mx-auto mt-7 grid w-full max-w-sm grid-cols-1 gap-2 text-sm text-ink-soft sm:mt-10 sm:max-w-2xl sm:grid-cols-3 sm:gap-4">
+            <span>
+              <strong className="text-ink">1,200+</strong> assets sold
+            </span>
+            <span>
+              <strong className="text-ink">$4.8M+</strong> in escrow
+            </span>
+            <span>
+              <strong className="text-ink">4.8/5</strong> avg rating
+            </span>
           </div>
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 flex justify-center pb-4 text-ink-soft/50">
-          <ChevronDown className="size-5 animate-bounce" />
         </div>
       </section>
 
       {/* CATEGORIES */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mb-10 flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-3xl font-semibold text-ink">Browse by category</h2>
-            <p className="mt-2 text-ink-soft">Ten curated categories, all escrow-protected.</p>
+      <section className="mx-auto w-full max-w-7xl min-w-0 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mb-8 flex min-w-0 items-end justify-between gap-4 sm:mb-10">
+          <div className="min-w-0">
+            <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">Browse by category</h2>
+            <p className="mt-2 text-sm text-ink-soft sm:text-base">Ten curated categories, all escrow-protected.</p>
           </div>
           <Link to="/browse" className="hidden shrink-0 items-center gap-1 text-sm font-medium text-primary sm:flex">
             View all <ArrowRight className="size-3.5" />

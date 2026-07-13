@@ -25,7 +25,7 @@ export default function ListingCard({ listing, favorited = false, onToggleFavori
   return (
     <div
       className={clsx(
-        'group card-hover relative flex flex-col overflow-hidden rounded-2xl border border-border bg-surface',
+        'group card-hover relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface',
         className
       )}
     >

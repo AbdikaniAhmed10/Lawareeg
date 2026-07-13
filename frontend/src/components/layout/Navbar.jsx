@@ -44,9 +44,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8">
-          <BrandLogo to={isAdmin ? '/admin' : '/'} size="md" />
+      <div className="mx-auto flex h-16 max-w-7xl min-w-0 items-center justify-between gap-2 px-3 sm:h-18 sm:gap-4 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-8">
+          <BrandLogo to={isAdmin ? '/admin' : '/'} size="sm" />
 
           {!isAdmin && (
             <nav className="hidden items-center gap-7 lg:flex">

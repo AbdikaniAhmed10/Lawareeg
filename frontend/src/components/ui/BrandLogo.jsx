@@ -3,10 +3,10 @@ import clsx from 'clsx'
 
 const SIZES = {
   sm: { img: 'h-8 w-8', text: 'text-lg' },
-  md: { img: 'h-10 w-10', text: 'text-xl' },
+  md: { img: 'h-9 w-9 sm:h-10 sm:w-10', text: 'text-lg sm:text-xl' },
   lg: { img: 'h-12 w-12', text: 'text-2xl' },
   xl: { img: 'h-16 w-16', text: 'text-3xl' },
-  hero: { img: 'h-24 w-24 sm:h-28 sm:w-28', text: 'text-5xl sm:text-6xl lg:text-7xl' },
+  hero: { img: 'h-20 w-20 sm:h-28 sm:w-28', text: 'text-4xl sm:text-6xl lg:text-7xl' },
 }
 
 /**
@@ -27,14 +27,10 @@ export default function BrandLogo({
     <>
       <img
         src="/logo.png"
-        alt="Lawareeg"
+        alt=""
         width={112}
         height={112}
-        className={clsx(
-          'shrink-0 rounded-xl object-contain',
-          s.img,
-          imgClassName
-        )}
+        className={clsx('shrink-0 rounded-xl object-contain', s.img, imgClassName)}
         decoding="async"
       />
       {showWordmark && (
@@ -45,10 +41,14 @@ export default function BrandLogo({
     </>
   )
 
-  const classes = clsx('inline-flex items-center gap-2.5 shrink-0', className)
+  const classes = clsx('inline-flex items-center gap-2 shrink-0', className)
 
   if (!asLink) {
-    return <span className={classes}>{content}</span>
+    return (
+      <span className={classes} aria-label="Lawareeg">
+        {content}
+      </span>
+    )
   }
 
   return (

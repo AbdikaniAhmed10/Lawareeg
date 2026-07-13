@@ -65,17 +65,36 @@
 
 * {
   border-color: var(--color-border);
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  font-family: var(--font-ui);
+  font-family: var(--font-family-ui), ui-sans-serif, system-ui, sans-serif;
   background-color: var(--color-sand);
   color: var(--color-ink);
   transition: background-color 0.3s ease, color 0.3s ease;
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
 }
 
 ::selection {
