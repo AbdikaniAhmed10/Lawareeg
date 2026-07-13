@@ -26,6 +26,15 @@ const NAV_LINKS = [
   { to: '/faq', label: 'FAQ' },
 ]
 
+const DASHBOARD_MOBILE_LINKS = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/dashboard/orders', label: 'My Orders' },
+  { to: '/dashboard/my-listings', label: 'My Listings' },
+  { to: '/dashboard/messages', label: 'Messages' },
+  { to: '/dashboard/wallet', label: 'Wallet' },
+  { to: '/dashboard/profile', label: 'Profile' },
+]
+
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -203,6 +212,27 @@ export default function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
+            {isAuthenticated && !isAdmin && (
+              <div className="mt-2 flex flex-col gap-1 border-t border-border pt-2">
+                <p className="px-3 py-1 text-xs font-medium uppercase tracking-wide text-ink-soft">Account</p>
+                {DASHBOARD_MOBILE_LINKS.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    end={link.to === '/dashboard'}
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        'rounded-lg px-3 py-2.5 text-sm font-medium',
+                        isActive ? 'bg-primary/10 text-primary' : 'text-ink-soft hover:bg-sand-deep'
+                      )
+                    }
+                  >
+                    {link.label}
+                  </NavLink>
+                ))}
+              </div>
+            )}
             {isAdmin && (
               <Link
                 to="/admin"
