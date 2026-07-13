@@ -41,6 +41,9 @@ class Order extends Model
         'payment_confirmed_at',
         'payment_confirmed_by',
         'asset_transferred_at',
+        'handover_notes',
+        'handover_details',
+        'handover_attachment_path',
         'buyer_confirmed_at',
         'completed_at',
         'cancelled_at',
@@ -62,6 +65,7 @@ class Order extends Model
             'seller_amount' => 'decimal:2',
             'payment_confirmed_at' => 'datetime',
             'asset_transferred_at' => 'datetime',
+            'handover_details' => 'array',
             'buyer_confirmed_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
@@ -99,5 +103,10 @@ class Order extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);
+    }
+
+    public function conversation(): HasOne
+    {
+        return $this->hasOne(Conversation::class);
     }
 }

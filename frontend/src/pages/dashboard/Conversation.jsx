@@ -60,6 +60,8 @@ export default function Conversation({ backTo = '/dashboard/messages', listQuery
   const conversation = conversationQuery.data?.data
   const messages = messagesQuery.data?.data || []
   const isSupport = conversation?.is_support || conversation?.type === 'support'
+  const isOrder = conversation?.is_order || conversation?.type === 'order'
+  const allowCredentials = isSupport || isOrder
   const participant = conversation?.participant || conversation?.other_user
   const title = isSupport
     ? user?.role === 'admin'
@@ -70,7 +72,12 @@ export default function Conversation({ backTo = '/dashboard/messages', listQuery
     ? user?.role === 'admin'
       ? participant?.email || 'Support request'
       : 'Help with orders, payments, or account issues'
-    : conversation?.listing?.title || 'General inquiry'
+    : isOrder
+      ? conversation?.subtitle ||
+        conversation?.order?.order_number ||
+        conversation?.order?.listing_title ||
+        'Order chat — credentials allowed'
+      : conversation?.listing?.title || 'General inquiry'
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -80,7 +87,10 @@ export default function Conversation({ backTo = '/dashboard/messages', listQuery
     e.preventDefault()
     if (!text.trim()) return
 
-    const violation = findContactShareViolation(text, { allowNumbers: isSupport })
+    const violation = findContactShareViolation(text, {
+      allowNumbers: allowCredentials,
+      allowEmails: allowCredentials,
+    })
     if (violation) {
       setSendError(contactShareWarning(violation))
       return
@@ -165,11 +175,13 @@ export default function Conversation({ backTo = '/dashboard/messages', listQuery
             </div>
           ) : (
             <EmptyState
-              title={isSupport ? 'How can we help?' : 'Say hello'}
+              title={isSupport ? 'How can we help?' : isOrder ? 'Order handover chat' : 'Say hello'}
               description={
                 isSupport
                   ? 'Describe your issue — include your order number if you have one.'
-                  : 'Start the conversation by sending a message below.'
+                  : isOrder
+                    ? 'Share transfer steps, emails, passwords, and recovery codes here after payment is confirmed.'
+                    : 'Start the conversation by sending a message below.'
               }
             />
           )}
@@ -186,9 +198,11 @@ export default function Conversation({ backTo = '/dashboard/messages', listQuery
         <div className="shrink-0 border-t border-border bg-surface">
           <p className="flex items-start gap-1.5 px-3 pt-2.5 text-[11px] leading-snug text-ink-soft">
             <ShieldAlert className="mt-0.5 size-3 shrink-0 text-warning" />
-            {isSupport
-              ? 'Support chat — you can mention order numbers. Emails and WhatsApp are still blocked.'
-              : 'Chat only — no numbers, emails, or WhatsApp / other apps (including short names).'}
+            {isOrder
+              ? 'Order chat — emails, passwords, and codes are allowed. Stay on Lawareeg (no WhatsApp / Telegram).'
+              : isSupport
+                ? 'Support chat — order numbers and emails are allowed. WhatsApp / Telegram are still blocked.'
+                : 'Listing chat only — no numbers, emails, or WhatsApp / other apps (including short names).'}
           </p>
 
           <form onSubmit={handleSend} className="flex items-center gap-2 px-3 pb-3 pt-2">
@@ -198,7 +212,9 @@ export default function Conversation({ backTo = '/dashboard/messages', listQuery
                 setText(e.target.value)
                 if (sendError) setSendError('')
               }}
-              placeholder={isSupport ? 'Describe your issue…' : 'Type a message…'}
+              placeholder={
+                isOrder ? 'Share transfer details…' : isSupport ? 'Describe your issue…' : 'Type a message…'
+              }
               className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-sand px-3.5 text-sm text-ink outline-none focus:border-primary focus:ring-4 focus:ring-primary/15"
             />
             <button

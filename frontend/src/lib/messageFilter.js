@@ -2,13 +2,13 @@
  * Client-side hint for off-platform contact sharing.
  * Server still enforces the real block — this is UX only.
  */
-export function findContactShareViolation(text, { allowNumbers = false } = {}) {
+export function findContactShareViolation(text, { allowNumbers = false, allowEmails = false } = {}) {
   if (!text || !String(text).trim()) return null
 
   const body = String(text)
   const lower = body.toLowerCase()
 
-  if (/[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i.test(body)) {
+  if (!allowEmails && /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i.test(body)) {
     return 'email addresses'
   }
 

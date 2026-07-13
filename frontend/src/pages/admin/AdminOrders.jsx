@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Send, RotateCcw, Eye } from 'lucide-react'
+import { CheckCircle2, Send, RotateCcw, Eye, MessageSquare } from 'lucide-react'
 import adminApi from '../../api/admin'
+import ordersApi from '../../api/orders'
 import OrderStatusBadge from '../../components/orders/OrderStatusBadge'
 import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
@@ -13,10 +15,12 @@ import { ORDER_STATUSES } from '../../lib/constants'
 import BackButton from '../../components/ui/BackButton'
 
 export default function AdminOrders() {
+  const navigate = useNavigate()
   const [statusFilter, setStatusFilter] = useState('')
   const [refundTarget, setRefundTarget] = useState(null)
   const [reason, setReason] = useState('')
   const [detail, setDetail] = useState(null)
+  const [chatError, setChatError] = useState('')
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -38,7 +42,36 @@ export default function AdminOrders() {
     },
   })
 
+  const openOrderChat = async (orderId) => {
+    setChatError('')
+    try {
+      const res = await ordersApi.conversation(orderId)
+      const conversationId = res?.data?.id
+      if (conversationId) {
+        setDetail(null)
+        navigate(`/admin/support/${conversationId}`)
+      }
+    } catch (err) {
+      setChatError(
+        err?.response?.data?.errors?.order?.[0] ||
+          err?.response?.data?.message ||
+          'Could not open order chat.'
+      )
+    }
+  }
+
   const orders = data?.data || []
+  const detailLabels = {
+    username: 'Username',
+    email: 'Email',
+    password: 'Password',
+    recovery_email: 'Recovery email',
+    recovery_phone: 'Recovery phone',
+    auth_code: 'Auth code',
+    admin_invite: 'Admin invite',
+    transfer_method: 'Method',
+    extra: 'Extra',
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,7 +118,7 @@ export default function AdminOrders() {
                   <td className="px-5 py-3.5 text-ink-soft">{formatDate(order.created_at)}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center justify-end gap-1.5">
-                      <Button size="sm" variant="ghost" onClick={() => setDetail(order)}>
+                      <Button size="sm" variant="ghost" onClick={() => { setChatError(''); setDetail(order) }}>
                         <Eye className="size-4" />
                       </Button>
                       {(order.status === 'payment_under_review' || order.status === 'pending_payment') && (
@@ -146,6 +179,41 @@ export default function AdminOrders() {
             {detail.payment_proof_note && (
               <p className="text-ink-soft">Note: {detail.payment_proof_note}</p>
             )}
+            {(detail.handover_notes || detail.handover_details || detail.handover_attachment_url) && (
+              <div className="border-t border-border pt-3">
+                <p className="font-medium text-ink">Seller handover details</p>
+                {detail.handover_notes && (
+                  <pre className="mt-2 whitespace-pre-wrap text-ink-soft">{detail.handover_notes}</pre>
+                )}
+                {detail.handover_details && (
+                  <dl className="mt-2 grid gap-2">
+                    {Object.entries(detail.handover_details).map(([key, value]) => (
+                      <div key={key} className="flex justify-between gap-3">
+                        <dt className="text-ink-soft">{detailLabels[key] || key}</dt>
+                        <dd className="break-all text-right font-medium text-ink">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+                {detail.handover_attachment_url && (
+                  <a href={detail.handover_attachment_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-primary hover:underline">
+                    Open handover attachment
+                  </a>
+                )}
+              </div>
+            )}
+            {[
+              'payment_confirmed',
+              'seller_transferring',
+              'buyer_confirmation',
+              'completed',
+              'disputed',
+            ].includes(detail.status) && (
+              <Button className="mt-2 w-full" variant="secondary" onClick={() => openOrderChat(detail.id)}>
+                <MessageSquare className="size-4" /> Open order chat
+              </Button>
+            )}
+            {chatError && <p className="text-xs text-warning">{chatError}</p>}
           </div>
         )}
       </Modal>

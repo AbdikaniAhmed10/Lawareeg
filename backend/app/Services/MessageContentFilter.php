@@ -56,18 +56,34 @@ class MessageContentFilter
     }
 
     /**
-     * Support chats may include order IDs / amounts, but still block off-platform contact.
+     * Support chats may include order IDs / amounts / emails needed for help,
+     * but still block off-platform contact apps.
      */
     public static function findSupportViolation(?string $body): ?string
+    {
+        return self::findRelaxedViolation($body);
+    }
+
+    /**
+     * Paid-order handover chat: emails, passwords, recovery codes, and numbers are allowed.
+     * Still keep WhatsApp / Telegram / “contact me on …” off the platform.
+     */
+    public static function findOrderViolation(?string $body): ?string
+    {
+        return self::findRelaxedViolation($body);
+    }
+
+    private static function findRelaxedViolation(?string $body): ?string
     {
         if ($body === null || trim($body) === '') {
             return null;
         }
 
         $normalized = self::normalize($body);
+        $allowed = ['numbers', 'email addresses'];
 
         foreach (self::rules() as $rule) {
-            if ($rule['reason'] === 'numbers') {
+            if (in_array($rule['reason'], $allowed, true)) {
                 continue;
             }
             if (preg_match($rule['pattern'], $normalized) === 1 || preg_match($rule['pattern'], $body) === 1) {

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Listing;
 use App\Models\Order;
+use App\Models\Conversation;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +100,8 @@ class OrderService
 
         $this->addEvent($order, $admin, 'payment_confirmed', 'Admin confirmed payment receipt. Seller notified to transfer the asset.');
 
+        $this->ensureOrderConversation($order);
+
         $order->loadMissing('seller');
         $this->notificationService->send(
             $order->seller,
@@ -111,29 +114,112 @@ class OrderService
         return $order;
     }
 
-    public function markTransferring(Order $order, User $seller): Order
+    /**
+     * @param  array{notes?: string|null, details?: array|null, attachment_path?: string|null}  $handover
+     */
+    public function markTransferring(Order $order, User $seller, array $handover = []): Order
     {
         $this->assertStatus($order, [Order::STATUS_PAYMENT_CONFIRMED]);
+
+        $notes = isset($handover['notes']) ? trim((string) $handover['notes']) : '';
+        $details = $this->sanitizeHandoverDetails($handover['details'] ?? null);
+
+        if ($notes === '' && $details === [] && empty($handover['attachment_path'])) {
+            throw new RuntimeException('Add transfer details for the buyer (login, access steps, or a short note) before marking as transferred.');
+        }
 
         $order->update([
             'status' => Order::STATUS_SELLER_TRANSFERRING,
             'asset_transferred_at' => now(),
+            'handover_notes' => $notes !== '' ? $notes : null,
+            'handover_details' => $details !== [] ? $details : null,
+            'handover_attachment_path' => $handover['attachment_path'] ?? null,
         ]);
 
-        $this->addEvent($order, $seller, 'seller_transferring', 'Seller marked the asset as being transferred.');
+        $this->addEvent($order, $seller, 'seller_transferring', 'Seller submitted transfer details and marked the asset as transferred.', [
+            'has_notes' => $notes !== '',
+            'detail_keys' => array_keys($details),
+            'has_attachment' => ! empty($handover['attachment_path']),
+        ]);
+
+        $conversation = $this->ensureOrderConversation($order);
+        $conversation->messages()->create([
+            'sender_id' => $seller->id,
+            'body' => 'I submitted the transfer details on the order page. Please check the Transfer details section, then confirm once you have full access.',
+        ]);
+        $conversation->update(['last_message_at' => now()]);
 
         $order->loadMissing('buyer');
         $this->notificationService->send(
             $order->buyer,
             'seller_transferring',
-            'Asset transfer in progress',
-            "The seller has started transferring the asset for order {$order->order_number}. Please confirm once you receive it.",
+            'Asset transfer details ready',
+            "The seller submitted transfer details for order {$order->order_number}. Review them and confirm once you have access.",
             ['order_id' => $order->id]
         );
 
         $order->update(['status' => Order::STATUS_BUYER_CONFIRMATION]);
 
         return $order;
+    }
+
+    public function ensureOrderConversation(Order $order): Conversation
+    {
+        $existing = Conversation::query()
+            ->where('type', Conversation::TYPE_ORDER)
+            ->where('order_id', $order->id)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        return Conversation::create([
+            'type' => Conversation::TYPE_ORDER,
+            'order_id' => $order->id,
+            // Keep listing_id null so we do not collide with listing-inquiry uniqueness.
+            'listing_id' => null,
+            'buyer_id' => $order->buyer_id,
+            'seller_id' => $order->seller_id,
+            'last_message_at' => now(),
+        ]);
+    }
+
+    /**
+     * @param  mixed  $details
+     * @return array<string, string>
+     */
+    private function sanitizeHandoverDetails(mixed $details): array
+    {
+        if (! is_array($details)) {
+            return [];
+        }
+
+        $allowed = [
+            'username',
+            'email',
+            'password',
+            'recovery_email',
+            'recovery_phone',
+            'auth_code',
+            'admin_invite',
+            'transfer_method',
+            'extra',
+        ];
+
+        $clean = [];
+        foreach ($allowed as $key) {
+            if (! array_key_exists($key, $details)) {
+                continue;
+            }
+            $value = trim((string) $details[$key]);
+            if ($value === '') {
+                continue;
+            }
+            $clean[$key] = mb_substr($value, 0, 2000);
+        }
+
+        return $clean;
     }
 
     public function confirmReceipt(Order $order, User $buyer): Order
@@ -224,6 +310,19 @@ class OrderService
         ]);
 
         $this->addEvent($order, $actor, 'dispute_opened', $reason, $evidence ? ['evidence' => $evidence] : []);
+
+        $this->ensureOrderConversation($order);
+
+        User::query()->where('role', 'admin')->where('is_suspended', false)->get()
+            ->each(function (User $admin) use ($order, $actor) {
+                $this->notificationService->send(
+                    $admin,
+                    'dispute_opened',
+                    'Order dispute opened',
+                    "{$actor->name} opened a dispute on order {$order->order_number}.",
+                    ['order_id' => $order->id]
+                );
+            });
 
         return $order;
     }

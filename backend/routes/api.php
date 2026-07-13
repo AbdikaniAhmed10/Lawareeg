@@ -38,6 +38,9 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/secure/orders/{order}/payment-proof', [SecureFileController::class, 'paymentProof'])
         ->middleware('signed')
         ->name('secure.payment-proof');
+    Route::get('/secure/orders/{order}/handover-attachment', [SecureFileController::class, 'handoverAttachment'])
+        ->middleware('signed')
+        ->name('secure.handover-attachment');
     Route::get('/secure/verifications/{verification}/document', [SecureFileController::class, 'sellerDocument'])
         ->middleware('signed')
         ->name('secure.seller-document');
@@ -111,6 +114,7 @@ Route::middleware(['auth:sanctum', 'not-suspended', 'verified'])->group(function
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->middleware('throttle:10,1');
     Route::post('/orders/{order}/dispute', [OrderController::class, 'dispute'])->middleware('throttle:10,1');
     Route::get('/orders/{order}/timeline', [OrderController::class, 'timeline']);
+    Route::get('/orders/{order}/conversation', [OrderController::class, 'conversation'])->middleware('throttle:30,1');
 
     // Wallet
     Route::get('/wallet', [WalletController::class, 'show']);
@@ -129,7 +133,7 @@ Route::middleware(['auth:sanctum', 'not-suspended', 'verified'])->group(function
     Route::post('/conversations/support', [ConversationController::class, 'startSupport'])->middleware('throttle:10,1');
     Route::get('/conversations/{conversation}', [ConversationController::class, 'show']);
     Route::get('/conversations/{conversation}/messages', [ConversationController::class, 'messages']);
-    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])->middleware('throttle:60,1');
+    Route::post('/conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])->middleware('throttle:120,1');
     Route::post('/conversations/{conversation}/read', [ConversationController::class, 'markRead']);
 
     // Notifications

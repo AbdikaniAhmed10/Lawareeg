@@ -14,6 +14,23 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SecureFileController extends Controller
 {
+    public function handoverAttachment(Request $request, Order $order): StreamedResponse
+    {
+        $user = $request->user('sanctum') ?? $request->user();
+
+        $partyOk = $user && (
+            $user->isAdmin()
+            || $user->id === $order->buyer_id
+            || $user->id === $order->seller_id
+        );
+
+        if (! $partyOk && ! $request->hasValidSignature()) {
+            throw new AccessDeniedHttpException('Not allowed to download this file.');
+        }
+
+        return $this->streamPrivate($order->handover_attachment_path, 'handover-details');
+    }
+
     public function paymentProof(Request $request, Order $order): StreamedResponse
     {
         $user = $request->user('sanctum') ?? $request->user();

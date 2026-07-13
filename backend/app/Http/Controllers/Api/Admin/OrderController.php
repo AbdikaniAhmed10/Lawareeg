@@ -16,7 +16,7 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = Order::query()->with(['listing', 'buyer', 'seller']);
+        $query = Order::query()->with(['listing', 'buyer', 'seller', 'conversation']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -30,7 +30,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         return response()->json([
-            'data' => new OrderResource($order->load(['listing', 'buyer', 'seller', 'events.actor', 'review'])),
+            'data' => new OrderResource($order->load(['listing', 'buyer', 'seller', 'events.actor', 'review', 'conversation'])),
         ]);
     }
 
@@ -43,7 +43,7 @@ class OrderController extends Controller
         }
 
         return response()->json([
-            'data' => new OrderResource($order->fresh(['listing', 'buyer', 'seller'])),
+            'data' => new OrderResource($order->fresh(['listing', 'buyer', 'seller', 'conversation'])),
         ]);
     }
 

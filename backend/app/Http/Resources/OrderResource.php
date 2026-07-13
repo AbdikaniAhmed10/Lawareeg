@@ -26,6 +26,12 @@ class OrderResource extends JsonResource
             'payment_proof_note' => $this->payment_proof_note,
             'payment_confirmed_at' => $this->payment_confirmed_at?->toIso8601String(),
             'asset_transferred_at' => $this->asset_transferred_at?->toIso8601String(),
+            'handover_notes' => $this->handover_notes,
+            'handover_details' => $this->handover_details,
+            'handover_attachment_url' => $this->handover_attachment_path
+                ? Media::signedRoute('secure.handover-attachment', ['order' => $this->id])
+                : null,
+            'conversation_id' => $this->whenLoaded('conversation', fn () => $this->conversation?->id),
             'buyer_confirmed_at' => $this->buyer_confirmed_at?->toIso8601String(),
             'completed_at' => $this->completed_at?->toIso8601String(),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),

@@ -70,12 +70,16 @@ export default function Messages() {
         <div className="flex flex-col divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
           {conversations.map((conv) => {
             const isSupport = conv.is_support || conv.type === 'support'
+            const isOrder = conv.is_order || conv.type === 'order'
             const participant = conv.participant || conv.other_user
             const name = isSupport ? 'Lawareeg Support' : participant?.name || 'Conversation'
             const preview =
               typeof conv.last_message === 'string'
                 ? conv.last_message
-                : conv.last_message?.body || conv.listing?.title || 'No messages yet'
+                : conv.last_message?.body ||
+                  (isOrder ? conv.subtitle || conv.order?.order_number : null) ||
+                  conv.listing?.title ||
+                  'No messages yet'
 
             return (
               <Link
@@ -85,7 +89,7 @@ export default function Messages() {
               >
                 <span
                   className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                    isSupport ? 'bg-primary text-white' : 'bg-primary/10 text-primary'
+                    isSupport ? 'bg-primary text-white' : isOrder ? 'bg-info/15 text-info' : 'bg-primary/10 text-primary'
                   }`}
                 >
                   {isSupport ? <Headset className="size-5" /> : initials(participant?.name || 'U')}
@@ -98,6 +102,10 @@ export default function Messages() {
                   <p className="truncate text-sm text-ink-soft">{preview}</p>
                   {isSupport ? (
                     <p className="mt-0.5 truncate text-xs text-primary">Help &amp; support</p>
+                  ) : isOrder ? (
+                    <p className="mt-0.5 truncate text-xs text-info">
+                      Order chat · {conv.order?.order_number || conv.subtitle || 'credentials allowed'}
+                    </p>
                   ) : (
                     conv.listing?.title && (
                       <p className="mt-0.5 truncate text-xs text-primary">{conv.listing.title}</p>

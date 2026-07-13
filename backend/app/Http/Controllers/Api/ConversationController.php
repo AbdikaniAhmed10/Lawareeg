@@ -26,7 +26,7 @@ class ConversationController extends Controller
         $userId = $user->id;
 
         $conversations = Conversation::query()
-            ->with(['listing', 'buyer', 'seller', 'latestMessage'])
+            ->with(['listing', 'buyer', 'seller', 'latestMessage', 'order.listing'])
             ->where(function ($q) use ($userId) {
                 $q->where('buyer_id', $userId)->orWhere('seller_id', $userId);
             })
@@ -110,7 +110,7 @@ class ConversationController extends Controller
         $this->authorizeParty($request, $conversation);
 
         return response()->json([
-            'data' => new ConversationResource($conversation->load(['listing', 'buyer', 'seller'])),
+            'data' => new ConversationResource($conversation->load(['listing', 'buyer', 'seller', 'order.listing'])),
         ]);
     }
 
@@ -136,13 +136,13 @@ class ConversationController extends Controller
             throw ValidationException::withMessages(['body' => ['A message body or attachment is required.']]);
         }
 
-        // Listing chats: block contact sharing. Support chats: allow order numbers, still block WhatsApp/email.
+        // Listing: block contact. Order/support: allow emails & numbers for credentials / order help.
         if (! empty($data['body'])) {
-            if ($conversation->isSupport()) {
-                $violation = MessageContentFilter::findSupportViolation($data['body']);
-            } else {
-                $violation = MessageContentFilter::findViolation($data['body']);
-            }
+            $violation = match (true) {
+                $conversation->isOrder() => MessageContentFilter::findOrderViolation($data['body']),
+                $conversation->isSupport() => MessageContentFilter::findSupportViolation($data['body']),
+                default => MessageContentFilter::findViolation($data['body']),
+            };
             if ($violation !== null) {
                 throw ValidationException::withMessages([
                     'body' => [MessageContentFilter::warningMessage($violation)],
@@ -278,6 +278,23 @@ class ConversationController extends Controller
                             ['conversation_id' => $conversation->id]
                         );
                     });
+            }
+
+            return;
+        }
+
+        if ($conversation->isOrder() && $sender->role === 'admin') {
+            foreach ([$conversation->buyer_id, $conversation->seller_id] as $recipientId) {
+                $recipient = User::find($recipientId);
+                if ($recipient) {
+                    $this->notifications->send(
+                        $recipient,
+                        'new_message',
+                        'Admin message on order chat',
+                        $preview,
+                        ['conversation_id' => $conversation->id, 'order_id' => $conversation->order_id]
+                    );
+                }
             }
 
             return;

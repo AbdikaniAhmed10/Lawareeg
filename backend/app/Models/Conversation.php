@@ -12,9 +12,12 @@ class Conversation extends Model
 
     public const TYPE_SUPPORT = 'support';
 
+    public const TYPE_ORDER = 'order';
+
     protected $fillable = [
         'type',
         'listing_id',
+        'order_id',
         'buyer_id',
         'seller_id',
         'last_message_at',
@@ -32,9 +35,19 @@ class Conversation extends Model
         return $this->type === self::TYPE_SUPPORT;
     }
 
+    public function isOrder(): bool
+    {
+        return $this->type === self::TYPE_ORDER;
+    }
+
     public function listing(): BelongsTo
     {
         return $this->belongsTo(Listing::class);
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 
     public function buyer(): BelongsTo
