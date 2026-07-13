@@ -9,15 +9,12 @@ import { useAuthStore } from '../../store/authStore'
 import { isEmailVerified } from '../../components/auth/RequireVerified'
 import BackButton from '../../components/ui/BackButton'
 import BrandLogo from '../../components/ui/BrandLogo'
-import LanguageSwitcher from '../../components/ui/LanguageSwitcher'
-import { useT } from '../../context/LanguageContext'
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const setAuth = useAuthStore((s) => s.setAuth)
-  const { t } = useT()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -37,7 +34,7 @@ export default function Login() {
       const redirectTo = location.state?.from || (res.user?.role === 'admin' ? '/admin' : '/dashboard')
       navigate(redirectTo)
     } catch (err) {
-      setError(err?.response?.data?.message || t('auth.invalidCredentials'))
+      setError(err?.response?.data?.message || 'Invalid email or password. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -47,14 +44,13 @@ export default function Login() {
     <div className="flex min-h-screen atmosphere-gradient">
       <div className="flex w-full flex-col items-center justify-center px-4 py-16 sm:px-6">
         <div className="mb-6 flex w-full max-w-md items-center justify-between gap-3">
-          <BackButton to="/" label={t('common.backToHome')} preferHistory={false} />
-          <LanguageSwitcher />
+          <BackButton to="/" label="Back to home" preferHistory={false} />
         </div>
         <BrandLogo to="/" size="lg" className="mb-8" />
 
         <div className="w-full max-w-md animate-fade-in-up rounded-2xl border border-border bg-surface p-8 shadow-lg">
-          <h1 className="font-display text-2xl font-semibold text-ink">{t('auth.welcomeBack')}</h1>
-          <p className="mt-1.5 text-sm text-ink-soft">{t('auth.loginSubtitle')}</p>
+          <h1 className="font-display text-2xl font-semibold text-ink">Welcome back</h1>
+          <p className="mt-1.5 text-sm text-ink-soft">Sign in to manage your listings, orders and wallet.</p>
 
           {justVerified && (
             <Alert variant="success" className="mt-5">
@@ -66,7 +62,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
             <Input
-              label={t('auth.email')}
+              label="Email address"
               type="email"
               icon={Mail}
               placeholder="you@example.com"
@@ -76,7 +72,7 @@ export default function Login() {
             />
             <div>
               <Input
-                label={t('auth.password')}
+                label="Password"
                 type="password"
                 icon={Lock}
                 placeholder="••••••••"
@@ -90,14 +86,14 @@ export default function Login() {
             </div>
 
             <Button type="submit" size="lg" loading={loading} className="mt-2 w-full">
-              {t('common.signIn')} <ArrowRight className="size-4" />
+              Sign in <ArrowRight className="size-4" />
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-ink-soft">
-            {t('auth.noAccount')}{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="font-medium text-primary hover:underline">
-              {t('common.createAccount')}
+              Create account
             </Link>
           </p>
         </div>

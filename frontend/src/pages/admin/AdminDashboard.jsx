@@ -6,10 +6,8 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import { formatCurrency, formatDate, formatNumber } from '../../lib/format'
 import BackButton from '../../components/ui/BackButton'
-import { useT } from '../../context/LanguageContext'
 
 export default function AdminDashboard() {
-  const { t } = useT()
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'dashboard'],
     queryFn: adminApi.dashboard,
@@ -29,26 +27,26 @@ export default function AdminDashboard() {
   const recentOrders = Array.isArray(recentRaw) ? recentRaw : recentRaw?.data || []
 
   const cards = [
-    { label: t('admin.stats.totalUsers'), value: formatNumber(stats.total_users), icon: Users, color: 'bg-info/10 text-info' },
-    { label: t('admin.stats.totalListings'), value: formatNumber(stats.total_listings), icon: Tag, color: 'bg-primary/10 text-primary' },
-    { label: t('admin.stats.activeOrders'), value: formatNumber(stats.active_orders), icon: ShoppingBag, color: 'bg-warning/10 text-warning' },
-    { label: t('admin.stats.pendingWithdrawals'), value: formatNumber(stats.pending_withdrawals), icon: Banknote, color: 'bg-danger/10 text-danger' },
-    { label: t('admin.stats.totalVolume'), value: formatCurrency(stats.total_volume), icon: TrendingUp, color: 'bg-success/10 text-success' },
-    { label: t('admin.stats.commissionEarned'), value: formatCurrency(stats.commission_earned), icon: AlertTriangle, color: 'bg-accent/10 text-accent' },
+    { label: 'Total Users', value: formatNumber(stats.total_users), icon: Users, color: 'bg-info/10 text-info' },
+    { label: 'Total Listings', value: formatNumber(stats.total_listings), icon: Tag, color: 'bg-primary/10 text-primary' },
+    { label: 'Active Orders', value: formatNumber(stats.active_orders), icon: ShoppingBag, color: 'bg-warning/10 text-warning' },
+    { label: 'Pending Withdrawals', value: formatNumber(stats.pending_withdrawals), icon: Banknote, color: 'bg-danger/10 text-danger' },
+    { label: 'Total Volume', value: formatCurrency(stats.total_volume), icon: TrendingUp, color: 'bg-success/10 text-success' },
+    { label: 'Commission Earned', value: formatCurrency(stats.commission_earned), icon: AlertTriangle, color: 'bg-accent/10 text-accent' },
   ]
 
   return (
     <div className="flex flex-col gap-8">
-      <BackButton to="/" label={t('common.backToMarketplace')} className="lg:hidden" preferHistory={false} />
+      <BackButton to="/" label="Back to marketplace" className="lg:hidden" preferHistory={false} />
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink">{t('admin.dashboardTitle')}</h1>
-        <p className="mt-1 text-ink-soft">{t('admin.dashboardSubtitle')}</p>
+        <h1 className="font-display text-2xl font-semibold text-ink">Admin dashboard</h1>
+        <p className="mt-1 text-ink-soft">Marketplace performance at a glance.</p>
       </div>
 
       {isLoading ? (
         <Spinner className="py-20" />
       ) : isError ? (
-        <EmptyState title={t('common.loadError')} description={t('admin.dashboardLoadError')} />
+        <EmptyState title="Could not load data" description="Check that you are signed in as admin and try again." />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -64,13 +62,13 @@ export default function AdminDashboard() {
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <h2 className="font-display text-lg font-medium text-ink">{t('admin.recentOrders')}</h2>
+            <h2 className="font-display text-lg font-medium text-ink">Recent orders</h2>
             {recentOrders.length ? (
               <div className="mt-4 flex flex-col divide-y divide-border">
                 {recentOrders.map((order) => (
                   <div key={order.id} className="flex items-center justify-between gap-4 py-3.5">
                     <div>
-                      <p className="text-sm font-medium text-ink">{order.listing?.title || `${t('admin.order')} #${order.id}`}</p>
+                      <p className="text-sm font-medium text-ink">{order.listing?.title || `Order #${order.id}`}</p>
                       <p className="text-xs text-ink-soft">
                         {formatDate(order.created_at)} · {formatCurrency(order.price ?? order.amount)}
                       </p>
@@ -81,8 +79,8 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <EmptyState
-                title={t('admin.noRecentOrders')}
-                description={t('admin.noRecentOrdersDesc')}
+                title="No recent orders"
+                description="New orders will appear here as they come in."
                 className="mt-4"
               />
             )}

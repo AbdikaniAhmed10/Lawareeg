@@ -9,12 +9,10 @@ import Spinner from '../../components/ui/Spinner'
 import Pagination from '../../components/ui/Pagination'
 import { getCategoryBySlug } from '../../lib/constants'
 import BackButton from '../../components/ui/BackButton'
-import { useT } from '../../context/LanguageContext'
 
 const PER_PAGE = 8
 
 export default function CategoryPage() {
-  const { t } = useT()
   const { slug } = useParams()
   const [page, setPage] = useState(1)
   const category = getCategoryBySlug(slug)
@@ -31,9 +29,9 @@ export default function CategoryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <BackButton to="/browse" label={t('browse.backToBrowse')} className="mb-4" />
+      <BackButton to="/browse" label="Back to browse" className="mb-4" />
       <nav className="mb-6 flex items-center gap-1.5 text-sm text-ink-soft">
-        <Link to="/browse" className="hover:text-primary">{t('nav.browse')}</Link>
+        <Link to="/browse" className="hover:text-primary">Browse</Link>
         <ChevronRight className="size-3.5" />
         <span className="text-ink">{category?.name || slug}</span>
       </nav>
@@ -45,13 +43,13 @@ export default function CategoryPage() {
           </div>
         )}
         <div>
-          <h1 className="font-display text-3xl font-semibold text-ink">{category?.name || t('browse.category')}</h1>
+          <h1 className="font-display text-3xl font-semibold text-ink">{category?.name || 'Category'}</h1>
           <p className="mt-1 text-ink-soft">{category?.description}</p>
         </div>
       </div>
 
       {isLoading ? (
-        <Spinner className="py-24" label={t('browse.loading')} />
+        <Spinner className="py-24" label="Loading listings…" />
       ) : listings.length ? (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -64,7 +62,7 @@ export default function CategoryPage() {
           </div>
         </>
       ) : (
-        <EmptyState title={t('browse.emptyCategoryTitle')} description={t('browse.emptyCategoryDesc')} />
+        <EmptyState title="No listings in this category yet" description="Check back soon or explore other categories." />
       )}
     </div>
   )

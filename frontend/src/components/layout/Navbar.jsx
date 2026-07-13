@@ -15,24 +15,21 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useTheme } from '../../context/ThemeContext'
-import { useT } from '../../context/LanguageContext'
 import { useAuthStore } from '../../store/authStore'
 import Button from '../ui/Button'
 import BrandLogo from '../ui/BrandLogo'
-import LanguageSwitcher from '../ui/LanguageSwitcher'
 import { initials } from '../../lib/format'
 
 const NAV_LINKS = [
-  { to: '/browse', labelKey: 'nav.browse' },
-  { to: '/how-it-works', labelKey: 'nav.howItWorks' },
-  { to: '/faq', labelKey: 'nav.faq' },
+  { to: '/browse', label: 'Browse' },
+  { to: '/how-it-works', label: 'How it Works' },
+  { to: '/faq', label: 'FAQ' },
 ]
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
-  const { t } = useT()
   const { user, isAuthenticated, logout } = useAuthStore()
   const navigate = useNavigate()
 
@@ -63,7 +60,7 @@ export default function Navbar() {
                     )
                   }
                 >
-                  {t(link.labelKey)}
+                  {link.label}
                 </NavLink>
               ))}
             </nav>
@@ -71,7 +68,6 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
           <button
             type="button"
             onClick={toggleTheme}
@@ -126,7 +122,7 @@ export default function Navbar() {
                         <p className="text-sm font-medium text-ink truncate">{user?.name}</p>
                         <p className="text-xs text-ink-soft truncate">{user?.email}</p>
                         {isAdmin && (
-                          <p className="mt-1 text-xs font-medium text-primary">{t('nav.platformAdmin')}</p>
+                          <p className="mt-1 text-xs font-medium text-primary">Platform admin</p>
                         )}
                       </div>
                       {isAdmin ? (
@@ -135,7 +131,7 @@ export default function Navbar() {
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-sand-deep hover:text-ink"
                         >
-                          <LayoutDashboard className="size-4" /> {t('nav.adminPanel')}
+                          <LayoutDashboard className="size-4" /> Admin Panel
                         </Link>
                       ) : (
                         <>
@@ -144,14 +140,14 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-sand-deep hover:text-ink"
                           >
-                            <LayoutDashboard className="size-4" /> {t('nav.dashboard')}
+                            <LayoutDashboard className="size-4" /> Dashboard
                           </Link>
                           <Link
                             to="/dashboard/wallet"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-sand-deep hover:text-ink"
                           >
-                            <Wallet className="size-4" /> {t('nav.wallet')}
+                            <Wallet className="size-4" /> Wallet
                           </Link>
                         </>
                       )}
@@ -160,7 +156,7 @@ export default function Navbar() {
                         onClick={handleLogout}
                         className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger/10 cursor-pointer"
                       >
-                        <LogOut className="size-4" /> {t('common.signOut')}
+                        <LogOut className="size-4" /> Sign out
                       </button>
                     </div>
                   </>
@@ -170,10 +166,10 @@ export default function Navbar() {
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
               <Button as={Link} to="/login" variant="ghost" size="sm">
-                {t('common.signIn')}
+                Sign in
               </Button>
               <Button as={Link} to="/register" variant="primary" size="sm">
-                {t('common.getStarted')}
+                Get started
               </Button>
             </div>
           )}
@@ -204,7 +200,7 @@ export default function Navbar() {
                     )
                   }
                 >
-                  {t(link.labelKey)}
+                  {link.label}
                 </NavLink>
               ))}
             {isAdmin && (
@@ -213,16 +209,16 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
               >
-                {t('nav.adminPanel')}
+                Admin Panel
               </Link>
             )}
             {!isAuthenticated && (
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
                 <Button as={Link} to="/login" variant="secondary" onClick={() => setOpen(false)}>
-                  {t('common.signIn')}
+                  Sign in
                 </Button>
                 <Button as={Link} to="/register" variant="primary" onClick={() => setOpen(false)}>
-                  {t('common.getStarted')}
+                  Get started
                 </Button>
               </div>
             )}

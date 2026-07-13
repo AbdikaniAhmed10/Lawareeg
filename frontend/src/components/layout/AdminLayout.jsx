@@ -22,26 +22,24 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { useTheme } from '../../context/ThemeContext'
-import { useT } from '../../context/LanguageContext'
 import { isEmailVerified } from '../auth/RequireVerified'
 import BrandLogo from '../ui/BrandLogo'
-import LanguageSwitcher from '../ui/LanguageSwitcher'
 
 const NAV_ITEMS = [
-  { to: '/admin', labelKey: 'admin.dashboard', icon: LayoutDashboard, end: true },
-  { to: '/admin/users', labelKey: 'admin.users', icon: Users },
-  { to: '/admin/verifications', labelKey: 'admin.verifications', icon: BadgeCheck },
-  { to: '/admin/listings', labelKey: 'admin.listings', icon: Tag },
-  { to: '/admin/orders', labelKey: 'admin.orders', icon: ShoppingBag },
-  { to: '/admin/withdrawals', labelKey: 'admin.withdrawals', icon: Banknote },
-  { to: '/admin/categories', labelKey: 'admin.categories', icon: FolderTree },
-  { to: '/admin/disputes', labelKey: 'admin.disputes', icon: AlertTriangle },
-  { to: '/admin/support', labelKey: 'admin.support', icon: Headset },
-  { to: '/admin/reports', labelKey: 'admin.reports', icon: BarChart3 },
-  { to: '/admin/settings', labelKey: 'admin.settings', icon: Settings },
+  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/verifications', label: 'Verifications', icon: BadgeCheck },
+  { to: '/admin/listings', label: 'Listings', icon: Tag },
+  { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { to: '/admin/withdrawals', label: 'Withdrawals', icon: Banknote },
+  { to: '/admin/categories', label: 'Categories', icon: FolderTree },
+  { to: '/admin/disputes', label: 'Disputes', icon: AlertTriangle },
+  { to: '/admin/support', label: 'Support', icon: Headset },
+  { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
+  { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
-function AdminNav({ onNavigate, t }) {
+function AdminNav({ onNavigate }) {
   return (
     <nav className="flex flex-1 flex-col gap-1 p-4">
       {NAV_ITEMS.map((item) => (
@@ -58,7 +56,7 @@ function AdminNav({ onNavigate, t }) {
           }
         >
           <item.icon className="size-4" />
-          {t(item.labelKey)}
+          {item.label}
         </NavLink>
       ))}
     </nav>
@@ -68,7 +66,6 @@ function AdminNav({ onNavigate, t }) {
 export default function AdminLayout() {
   const { isAuthenticated, user, logout } = useAuthStore()
   const { theme, toggleTheme } = useTheme()
-  const { t } = useT()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -108,17 +105,17 @@ export default function AdminLayout() {
           <BrandLogo to="/admin" size="sm" />
           <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Admin</span>
         </div>
-        <AdminNav t={t} />
+        <AdminNav />
         <div className="flex flex-col gap-1 border-t border-border p-4">
           <Link to="/" className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-ink-soft transition-colors hover:bg-sand-deep hover:text-primary">
-            <ArrowLeft className="size-4" /> {t('common.viewMarketplace')}
+            <ArrowLeft className="size-4" /> View marketplace
           </Link>
           <button
             type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-danger transition-colors hover:bg-danger/10 cursor-pointer"
           >
-            <LogOut className="size-4" /> {t('common.signOut')}
+            <LogOut className="size-4" /> Sign out
           </button>
         </div>
       </aside>
@@ -140,21 +137,21 @@ export default function AdminLayout() {
               </button>
             </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-              <AdminNav onNavigate={closeMenu} t={t} />
+              <AdminNav onNavigate={closeMenu} />
               <div className="flex flex-col gap-1 border-t border-border p-4">
                 <Link
                   to="/"
                   onClick={closeMenu}
                   className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-ink-soft transition-colors hover:bg-sand-deep hover:text-primary"
                 >
-                  <ArrowLeft className="size-4" /> {t('common.viewMarketplace')}
+                  <ArrowLeft className="size-4" /> View marketplace
                 </Link>
                 <button
                   type="button"
                   onClick={handleLogout}
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-danger transition-colors hover:bg-danger/10 cursor-pointer"
                 >
-                  <LogOut className="size-4" /> {t('common.signOut')}
+                  <LogOut className="size-4" /> Sign out
                 </button>
               </div>
             </div>
@@ -174,12 +171,11 @@ export default function AdminLayout() {
               <Menu className="size-5" />
             </button>
             <div className="min-w-0">
-              <p className="font-display text-lg font-medium text-ink">{t('admin.panel')}</p>
+              <p className="font-display text-lg font-medium text-ink">Admin Panel</p>
               <p className="truncate text-xs text-ink-soft">{user?.email}</p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <LanguageSwitcher />
             <button
               type="button"
               onClick={toggleTheme}
@@ -197,7 +193,7 @@ export default function AdminLayout() {
               className="hidden h-10 items-center gap-2 rounded-xl border border-border px-3 text-sm font-medium text-ink-soft transition-colors hover:bg-sand-deep hover:text-danger cursor-pointer sm:flex"
             >
               <LogOut className="size-4" />
-              <span>{t('common.signOut')}</span>
+              <span>Sign out</span>
             </button>
           </div>
         </header>

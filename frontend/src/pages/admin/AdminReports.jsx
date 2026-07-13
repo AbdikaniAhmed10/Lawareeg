@@ -5,10 +5,8 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import { formatCurrency, formatNumber } from '../../lib/format'
 import BackButton from '../../components/ui/BackButton'
-import { useT } from '../../context/LanguageContext'
 
 export default function AdminReports() {
-  const { t } = useT()
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'reports'],
     queryFn: () => adminApi.reports(),
@@ -25,25 +23,25 @@ export default function AdminReports() {
 
   const cards = [
     {
-      label: t('admin.stats.totalVolume'),
+      label: 'Total Volume',
       value: formatCurrency(totals.total_sales_volume ?? 0),
       icon: DollarSign,
       color: 'bg-primary/10 text-primary',
     },
     {
-      label: t('admin.stats.totalCommission'),
+      label: 'Total Commission',
       value: formatCurrency(totals.total_commission ?? 0),
       icon: TrendingUp,
       color: 'bg-success/10 text-success',
     },
     {
-      label: t('admin.stats.totalUsers'),
+      label: 'Total Users',
       value: formatNumber(totals.total_users ?? 0),
       icon: Users,
       color: 'bg-info/10 text-info',
     },
     {
-      label: t('admin.stats.totalOrders'),
+      label: 'Total Orders',
       value: formatNumber(totals.total_orders ?? totals.completed_orders ?? 0),
       icon: ShoppingBag,
       color: 'bg-warning/10 text-warning',
@@ -52,16 +50,16 @@ export default function AdminReports() {
 
   return (
     <div className="flex flex-col gap-8">
-      <BackButton to="/admin" label={t('common.backToAdmin')} className="lg:hidden" preferHistory={false} />
+      <BackButton to="/admin" label="Back to admin" className="lg:hidden" preferHistory={false} />
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink">{t('admin.reportsTitle')}</h1>
-        <p className="mt-1 text-ink-soft">{t('admin.reportsSubtitle')}</p>
+        <h1 className="font-display text-2xl font-semibold text-ink">Reports</h1>
+        <p className="mt-1 text-ink-soft">Marketplace performance and financial overview.</p>
       </div>
 
       {isLoading ? (
         <Spinner className="py-20" />
       ) : isError ? (
-        <EmptyState title={t('common.loadError')} description={t('admin.dashboardLoadError')} />
+        <EmptyState title="Could not load data" description="Check that you are signed in as admin and try again." />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -77,7 +75,7 @@ export default function AdminReports() {
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <h2 className="font-display text-lg font-medium text-ink">{t('admin.monthlyVolume')}</h2>
+            <h2 className="font-display text-lg font-medium text-ink">Monthly transaction volume</h2>
             {monthly.length ? (
               <div className="mt-8 flex items-end gap-4 sm:gap-6">
                 {monthly.map((m) => (
@@ -92,7 +90,7 @@ export default function AdminReports() {
                 ))}
               </div>
             ) : (
-              <EmptyState title={t('admin.noReportData')} description={t('admin.noReportDataDesc')} className="mt-4" />
+              <EmptyState title="No data yet" description="Reports will populate as transactions occur." className="mt-4" />
             )}
           </div>
         </>
