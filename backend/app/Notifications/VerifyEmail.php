@@ -24,6 +24,7 @@ class VerifyEmail extends Notification
             ->line('Use this code to verify your email address and unlock your dashboard:')
             ->line('**'.$this->code.'**')
             ->line('This code expires in 15 minutes.')
-            ->line('If you did not create a Lawareeg account, you can ignore this email.');
+            ->line('If you did not create a Lawareeg account, you can ignore this email.')
+            ->salutation('— Lawareeg');
     }
 }

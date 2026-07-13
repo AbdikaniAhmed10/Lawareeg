@@ -9,6 +9,7 @@ import Button from '../../components/ui/Button'
 import EmptyState from '../../components/ui/EmptyState'
 import { MOCK_LISTINGS, MOCK_TOP_SELLERS, MOCK_TESTIMONIALS, MOCK_FAQS } from '../../lib/mockData'
 import { formatCurrency, initials } from '../../lib/format'
+import BrandLogo from '../../components/ui/BrandLogo'
 
 const STEPS = [
   {
@@ -71,9 +72,12 @@ export default function Home() {
             <ShieldCheck className="size-3.5" /> Escrow-protected trades, every time
           </span>
 
-          <h1 className="animate-fade-in-up stagger-1 font-display text-6xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-7xl lg:text-8xl">
-            Lawareeg
-          </h1>
+          <div className="animate-fade-in-up stagger-1 flex flex-col items-center gap-5">
+            <BrandLogo asLink={false} size="hero" showWordmark={false} imgClassName="rounded-2xl shadow-lg" />
+            <h1 className="font-display text-6xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-7xl lg:text-8xl">
+              Lawareeg
+            </h1>
+          </div>
 
           <p className="animate-fade-in-up stagger-2 mt-6 max-w-2xl font-display text-2xl font-medium leading-snug text-ink sm:text-3xl">
             The trusted marketplace to buy and sell digital assets.

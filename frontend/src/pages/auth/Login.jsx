@@ -8,6 +8,7 @@ import authApi from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 import { isEmailVerified } from '../../components/auth/RequireVerified'
 import BackButton from '../../components/ui/BackButton'
+import BrandLogo from '../../components/ui/BrandLogo'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -43,9 +44,7 @@ export default function Login() {
     <div className="flex min-h-screen atmosphere-gradient">
       <div className="flex w-full flex-col items-center justify-center px-4 py-16 sm:px-6">
         <BackButton to="/" label="Back to home" className="mb-6" preferHistory={false} />
-        <Link to="/" className="mb-8 font-display text-2xl font-semibold text-ink">
-          Law<span className="text-primary">areeg</span>
-        </Link>
+        <BrandLogo to="/" size="lg" className="mb-8" />
 
         <div className="w-full max-w-md animate-fade-in-up rounded-2xl border border-border bg-surface p-8 shadow-lg">
           <h1 className="font-display text-2xl font-semibold text-ink">Welcome back</h1>

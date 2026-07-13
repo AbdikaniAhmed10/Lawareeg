@@ -155,7 +155,7 @@ export default function ListingDetail() {
                 />
               ) : (
                 <div className="flex size-full items-center justify-center bg-gradient-to-br from-primary/10 via-sand-deep to-accent/10">
-                  <span className="font-display text-5xl text-primary/25">Lawareeg</span>
+                  <img src="/logo.png" alt="Lawareeg" className="h-28 w-28 rounded-2xl object-contain opacity-80" />
                 </div>
               )}
               <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">

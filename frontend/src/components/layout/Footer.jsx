@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ThumbsUp, Camera, MessageCircle, Video, ShieldCheck } from 'lucide-react'
 import { CATEGORIES } from '../../lib/constants'
+import BrandLogo from '../ui/BrandLogo'
 
 export default function Footer() {
   return (
@@ -8,9 +9,7 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-10 sm:grid-cols-4 lg:grid-cols-5">
           <div className="col-span-2">
-            <Link to="/" className="font-display text-2xl font-semibold text-ink">
-              Law<span className="text-primary">areeg</span>
-            </Link>
+            <BrandLogo to="/" size="md" />
             <p className="mt-3 max-w-xs text-sm text-ink-soft">
               The trusted marketplace for buying and selling digital assets — social pages, websites, apps and
               online businesses — protected by manual escrow.

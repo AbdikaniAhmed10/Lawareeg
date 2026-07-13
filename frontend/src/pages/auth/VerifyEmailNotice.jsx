@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { KeyRound, Mail, RefreshCw, ShieldCheck } from 'lucide-react'
 import authApi from '../../api/auth'
 import Button from '../../components/ui/Button'
@@ -7,6 +7,7 @@ import Input from '../../components/ui/Input'
 import Alert from '../../components/ui/Alert'
 import { useAuthStore } from '../../store/authStore'
 import { isEmailVerified } from '../../components/auth/RequireVerified'
+import BrandLogo from '../../components/ui/BrandLogo'
 
 export default function VerifyEmailNotice() {
   const navigate = useNavigate()
@@ -65,9 +66,7 @@ export default function VerifyEmailNotice() {
   return (
     <div className="flex min-h-screen atmosphere-gradient">
       <div className="flex w-full flex-col items-center justify-center px-4 py-16 sm:px-6">
-        <Link to="/" className="mb-8 font-display text-2xl font-semibold text-ink">
-          Law<span className="text-primary">areeg</span>
-        </Link>
+        <BrandLogo to="/" size="lg" className="mb-8" />
 
         <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-lg">
           <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">

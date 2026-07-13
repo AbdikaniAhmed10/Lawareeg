@@ -20,6 +20,7 @@ import {
 import { useAuthStore } from '../../store/authStore'
 import { useTheme } from '../../context/ThemeContext'
 import { isEmailVerified } from '../auth/RequireVerified'
+import BrandLogo from '../ui/BrandLogo'
 
 const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -56,10 +57,8 @@ export default function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-sand">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
-        <div className="flex h-18 items-center gap-2 border-b border-border px-6">
-          <span className="font-display text-xl font-semibold text-ink">
-            Law<span className="text-primary">areeg</span>
-          </span>
+        <div className="flex h-18 items-center gap-2 border-b border-border px-5">
+          <BrandLogo to="/admin" size="sm" />
           <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Admin</span>
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-4">

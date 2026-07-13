@@ -18,6 +18,7 @@ import clsx from 'clsx'
 import { useTheme } from '../../context/ThemeContext'
 import { useAuthStore } from '../../store/authStore'
 import Button from '../ui/Button'
+import BrandLogo from '../ui/BrandLogo'
 import { initials } from '../../lib/format'
 
 const NAV_LINKS = [
@@ -45,11 +46,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-lg">
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link to={isAdmin ? '/admin' : '/'} className="flex items-center gap-2 shrink-0">
-            <span className="font-display text-2xl font-semibold tracking-tight text-ink">
-              Law<span className="text-primary">areeg</span>
-            </span>
-          </Link>
+          <BrandLogo to={isAdmin ? '/admin' : '/'} size="md" />
 
           {!isAdmin && (
             <nav className="hidden items-center gap-7 lg:flex">

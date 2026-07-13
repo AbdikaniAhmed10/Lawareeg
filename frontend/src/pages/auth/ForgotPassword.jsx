@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
 import authApi from '../../api/auth'
 import BackButton from '../../components/ui/BackButton'
+import BrandLogo from '../../components/ui/BrandLogo'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -31,9 +32,7 @@ export default function ForgotPassword() {
     <div className="flex min-h-screen atmosphere-gradient">
       <div className="flex w-full flex-col items-center justify-center px-4 py-16 sm:px-6">
         <BackButton to="/login" label="Back to sign in" className="mb-6" preferHistory={false} />
-        <Link to="/" className="mb-8 font-display text-2xl font-semibold text-ink">
-          Law<span className="text-primary">areeg</span>
-        </Link>
+        <BrandLogo to="/" size="lg" className="mb-8" />
 
         <div className="w-full max-w-md animate-fade-in-up rounded-2xl border border-border bg-surface p-8 shadow-lg">
           {sent ? (

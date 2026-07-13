@@ -142,6 +142,8 @@ docker compose --env-file .env.docker up -d --build
 - [x] Email verification before dashboard
 - [x] Role middleware (`admin`, `verified`, `not-suspended`)
 - [x] Request validation + upload mime limits
+- [x] Private disk + signed URLs for receipts / ID docs / attachments
+- [x] Rate limits on auth, withdrawals, uploads, messaging
 - [x] Manual escrow (no direct buyer→seller payout)
 - [x] Contact sharing blocked in listing chats
 - [ ] Strong unique DB passwords in `.env.docker`
