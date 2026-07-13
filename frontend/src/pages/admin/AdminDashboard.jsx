@@ -1,11 +1,21 @@
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Users, Tag, ShoppingBag, Banknote, AlertTriangle, TrendingUp } from 'lucide-react'
+import { Users, Tag, ShoppingBag, Banknote, AlertTriangle, TrendingUp, BadgeCheck, Settings } from 'lucide-react'
 import adminApi from '../../api/admin'
 import OrderStatusBadge from '../../components/orders/OrderStatusBadge'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import { formatCurrency, formatDate, formatNumber } from '../../lib/format'
 import BackButton from '../../components/ui/BackButton'
+
+const MOBILE_LINKS = [
+  { to: '/admin/users', label: 'Users', icon: Users },
+  { to: '/admin/listings', label: 'Listings', icon: Tag },
+  { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+  { to: '/admin/verifications', label: 'Verify', icon: BadgeCheck },
+  { to: '/admin/withdrawals', label: 'Withdraw', icon: Banknote },
+  { to: '/admin/settings', label: 'Settings', icon: Settings },
+]
 
 export default function AdminDashboard() {
   const { data, isLoading, isError } = useQuery({
@@ -37,10 +47,24 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-8">
-      <BackButton to="/" label="Back to marketplace" className="lg:hidden" preferHistory={false} />
+      <BackButton to="/" label="Back to marketplace" className="xl:hidden" preferHistory={false} />
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink">Admin dashboard</h1>
         <p className="mt-1 text-ink-soft">Marketplace performance at a glance.</p>
+      </div>
+
+      {/* Mobile shortcuts — always available on phone */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 xl:hidden">
+        {MOBILE_LINKS.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm font-medium text-ink shadow-sm"
+          >
+            <item.icon className="size-4 text-primary" />
+            {item.label}
+          </Link>
+        ))}
       </div>
 
       {isLoading ? (
