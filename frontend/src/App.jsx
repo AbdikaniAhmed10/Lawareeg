@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom'
 import PublicLayout from './components/layout/PublicLayout'
 import DashboardLayout from './components/layout/DashboardLayout'
 import AdminLayout from './components/layout/AdminLayout'
+import AuthLayout from './components/layout/AuthLayout'
 
 import Home from './pages/public/Home'
 import Browse from './pages/public/Browse'
@@ -73,10 +74,12 @@ export default function App() {
       </Route>
 
       {/* Auth */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/verify-email" element={<VerifyEmailNotice />} />
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-email" element={<VerifyEmailNotice />} />
+      </Route>
 
       {/* Buyer / seller dashboard */}
       <Route path="/dashboard" element={<DashboardLayout />}>

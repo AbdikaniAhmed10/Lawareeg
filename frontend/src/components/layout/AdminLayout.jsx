@@ -24,6 +24,7 @@ import { useAuthStore } from '../../store/authStore'
 import { useTheme } from '../../context/ThemeContext'
 import { isEmailVerified } from '../auth/RequireVerified'
 import BrandLogo from '../ui/BrandLogo'
+import Footer from './Footer'
 
 const NAV_ITEMS = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -200,6 +201,7 @@ export default function AdminLayout() {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
+        <Footer compact />
       </div>
     </div>
   )
