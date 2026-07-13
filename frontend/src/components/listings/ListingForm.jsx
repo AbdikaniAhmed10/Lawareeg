@@ -6,6 +6,7 @@ import Textarea from '../ui/Textarea'
 import Button from '../ui/Button'
 import Alert from '../ui/Alert'
 import { CATEGORIES } from '../../lib/constants'
+import { mediaUrl } from '../../lib/mediaUrl'
 import listingsApi from '../../api/listings'
 
 const DEFAULT_FORM = {
@@ -55,6 +56,7 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
   const [preview, setPreview] = useState(null)
   const [previewLoading, setPreviewLoading] = useState(false)
   const [previewError, setPreviewError] = useState('')
+  const [avatarBroken, setAvatarBroken] = useState(false)
 
   const update = (key, value) => setForm((f) => ({ ...f, [key]: value }))
 
@@ -63,6 +65,7 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
     if (!raw || raw.length < 8) {
       setPreview(null)
       setPreviewError('')
+      setAvatarBroken(false)
       return undefined
     }
 
@@ -72,6 +75,7 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
     const timer = setTimeout(async () => {
       setPreviewLoading(true)
       setPreviewError('')
+      setAvatarBroken(false)
       try {
         const res = await listingsApi.previewAsset({
           url,
@@ -105,6 +109,8 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
 
     return () => clearTimeout(timer)
   }, [form.asset_url, form.category])
+
+  const avatarSrc = mediaUrl(preview?.avatar_url || form.avatar_url)
 
   const handleFiles = (e) => {
     const files = Array.from(e.target.files || [])
@@ -172,13 +178,19 @@ export default function ListingForm({ initialValue, onSubmit, submitLabel = 'Sub
             <div className="mt-3 flex items-center gap-2 text-sm text-ink-soft">
               <Loader2 className="size-4 animate-spin" /> Fetching avatar from the link…
             </div>
-          ) : (preview?.avatar_url || form.avatar_url) ? (
+          ) : avatarSrc && !avatarBroken ? (
             <div className="mt-3 flex items-center gap-4">
               <img
-                src={preview?.avatar_url || form.avatar_url}
+                src={avatarSrc}
                 alt="Asset avatar"
                 className="size-16 rounded-xl object-cover border border-border bg-surface"
                 referrerPolicy="no-referrer"
+                onError={() => {
+                  setAvatarBroken(true)
+                  setPreviewError(
+                    'Profile image link expired or was blocked. Paste the profile URL again to re-fetch, or upload a screenshot.'
+                  )
+                }}
               />
               <div className="min-w-0">
                 <p className="truncate font-medium text-ink">{preview?.title || form.title || 'Profile found'}</p>
