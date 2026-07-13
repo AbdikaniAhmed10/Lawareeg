@@ -1,0 +1,71 @@
+import { useMemo, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { ChevronRight } from 'lucide-react'
+import listingsApi from '../../api/listings'
+import ListingCard from '../../components/listings/ListingCard'
+import EmptyState from '../../components/ui/EmptyState'
+import Spinner from '../../components/ui/Spinner'
+import Pagination from '../../components/ui/Pagination'
+import { getCategoryBySlug } from '../../lib/constants'
+import { MOCK_LISTINGS } from '../../lib/mockData'
+import BackButton from '../../components/ui/BackButton'
+
+const PER_PAGE = 8
+
+export default function CategoryPage() {
+  const { slug } = useParams()
+  const [page, setPage] = useState(1)
+  const category = getCategoryBySlug(slug)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['category', slug, page],
+    queryFn: () => listingsApi.byCategory(slug, { page, per_page: PER_PAGE }),
+    retry: 0,
+  })
+
+  const fallback = useMemo(() => MOCK_LISTINGS.filter((l) => l.category_slug === slug), [slug])
+  const listings = data?.data?.length ? data.data : fallback
+  const totalPages = data?.meta?.last_page || Math.max(1, Math.ceil(fallback.length / PER_PAGE))
+  const Icon = category?.icon
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <BackButton to="/browse" label="Back to browse" className="mb-4" />
+      <nav className="mb-6 flex items-center gap-1.5 text-sm text-ink-soft">
+        <Link to="/browse" className="hover:text-primary">Browse</Link>
+        <ChevronRight className="size-3.5" />
+        <span className="text-ink">{category?.name || slug}</span>
+      </nav>
+
+      <div className="mb-10 flex items-center gap-4">
+        {Icon && (
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Icon className="size-7" />
+          </div>
+        )}
+        <div>
+          <h1 className="font-display text-3xl font-semibold text-ink">{category?.name || 'Category'}</h1>
+          <p className="mt-1 text-ink-soft">{category?.description}</p>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <Spinner className="py-24" label="Loading listings…" />
+      ) : listings.length ? (
+        <>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+          <div className="mt-10">
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        </>
+      ) : (
+        <EmptyState title="No listings in this category yet" description="Check back soon or explore other categories." />
+      )}
+    </div>
+  )
+}

@@ -1,0 +1,17 @@
+node_modules
+vendor
+.git
+.env
+.env.*
+!.env.docker.example
+frontend/dist
+frontend/node_modules
+backend/vendor
+backend/node_modules
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+*.md
+!README.md
+docs
