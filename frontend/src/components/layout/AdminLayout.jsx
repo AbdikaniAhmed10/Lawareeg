@@ -101,7 +101,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-sand">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface xl:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-surface lg:flex">
         <div className="flex h-18 items-center gap-2 border-b border-border px-5">
           <BrandLogo to="/admin" size="sm" />
           <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Admin</span>
@@ -122,7 +122,7 @@ export default function AdminLayout() {
       </aside>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 xl:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Close menu" onClick={closeMenu} />
           <aside className="absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col bg-surface shadow-xl animate-fade-in">
             <div className="flex h-18 items-center gap-2 border-b border-border px-4">
@@ -166,7 +166,7 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-sand-deep text-ink shadow-sm hover:bg-primary/10 hover:text-primary xl:hidden cursor-pointer"
+              className="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-sand-deep text-ink shadow-sm hover:bg-primary/10 hover:text-primary lg:hidden cursor-pointer"
               aria-label="Open admin menu"
             >
               <Menu className="size-5" />

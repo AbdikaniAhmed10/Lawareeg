@@ -47,14 +47,14 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-8">
-      <BackButton to="/" label="Back to marketplace" className="xl:hidden" preferHistory={false} />
+      <BackButton to="/" label="Back to marketplace" className="lg:hidden" preferHistory={false} />
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink">Admin dashboard</h1>
         <p className="mt-1 text-ink-soft">Marketplace performance at a glance.</p>
       </div>
 
-      {/* Mobile shortcuts — always available on phone */}
-      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 xl:hidden">
+      {/* Mobile shortcuts — phones only */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden">
         {MOBILE_LINKS.map((item) => (
           <Link
             key={item.to}

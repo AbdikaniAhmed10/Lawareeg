@@ -107,7 +107,7 @@ export default function DashboardLayout() {
       <Navbar />
 
       {menuOpen && (
-        <div className="fixed inset-0 z-50 xl:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <button type="button" className="absolute inset-0 bg-ink/40" aria-label="Close menu" onClick={closeMenu} />
           <aside className="absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col bg-surface shadow-xl animate-fade-in">
             <div className="flex items-center gap-3 border-b border-border px-4 py-4">
@@ -135,7 +135,7 @@ export default function DashboardLayout() {
       )}
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <aside className="hidden w-64 shrink-0 xl:block">
+        <aside className="hidden w-64 shrink-0 lg:block">
           <div className="sticky top-24 rounded-2xl border border-border bg-surface p-4">
             <div className="mb-2 flex items-center gap-3 border-b border-border pb-4">
               <span className="flex size-11 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
@@ -151,7 +151,7 @@ export default function DashboardLayout() {
         </aside>
 
         <main className="min-w-0 flex-1">
-          <div className="mb-4 flex items-center gap-3 xl:hidden">
+          <div className="mb-4 flex items-center gap-3 lg:hidden">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
@@ -166,7 +166,7 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          <div className="-mx-1 mb-5 flex gap-2 overflow-x-auto px-1 pb-1 xl:hidden">
+          <div className="-mx-1 mb-5 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden">
             {MOBILE_CHIPS.map((item) => (
               <Link
                 key={item.to}
