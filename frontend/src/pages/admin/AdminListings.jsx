@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, X, Eye, ShieldCheck, ShieldX } from 'lucide-react'
+import { Check, X, Eye, ShieldCheck, ShieldX, Trash2 } from 'lucide-react'
 import adminApi from '../../api/admin'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
@@ -26,6 +26,7 @@ export default function AdminListings() {
   const [ownershipFilter, setOwnershipFilter] = useState('')
   const [rejectTarget, setRejectTarget] = useState(null)
   const [failOwnershipTarget, setFailOwnershipTarget] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const [reason, setReason] = useState('')
   const [detail, setDetail] = useState(null)
   const queryClient = useQueryClient()
@@ -63,6 +64,14 @@ export default function AdminListings() {
     onSuccess: () => {
       setFailOwnershipTarget(null)
       setReason('')
+      invalidate()
+    },
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (id) => adminApi.deleteListing(id),
+    onSuccess: () => {
+      setDeleteTarget(null)
+      setDetail(null)
       invalidate()
     },
   })
@@ -181,6 +190,14 @@ export default function AdminListings() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        title="Delete listing"
+                        onClick={() => setDeleteTarget(listing)}
+                      >
+                        <Trash2 className="size-4 text-danger" />
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -256,6 +273,25 @@ export default function AdminListings() {
         >
           Mark ownership failed
         </Button>
+      </Modal>
+
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete listing">
+        <p className="text-sm text-ink-soft">
+          Permanently delete <strong className="text-ink">{deleteTarget?.title}</strong>? This cannot be undone.
+        </p>
+        <div className="mt-4 flex gap-2">
+          <Button variant="secondary" className="flex-1" onClick={() => setDeleteTarget(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-1"
+            loading={deleteMutation.isPending}
+            onClick={() => deleteMutation.mutate(deleteTarget.id)}
+          >
+            Delete
+          </Button>
+        </div>
       </Modal>
     </div>
   )

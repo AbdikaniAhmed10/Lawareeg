@@ -1,19 +1,23 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, ShieldCheck, ShieldOff, ExternalLink, BadgeCheck } from 'lucide-react'
+import { Search, ShieldCheck, ShieldOff, ExternalLink, BadgeCheck, Trash2 } from 'lucide-react'
 import adminApi from '../../api/admin'
 import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
 import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import { formatDate, initials } from '../../lib/format'
 import { mediaUrl } from '../../lib/mediaUrl'
 import BackButton from '../../components/ui/BackButton'
+import { useAuthStore } from '../../store/authStore'
 
 export default function AdminUsers() {
   const [search, setSearch] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
   const queryClient = useQueryClient()
+  const me = useAuthStore((s) => s.user)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users', search],
@@ -28,6 +32,13 @@ export default function AdminUsers() {
   const reinstateMutation = useMutation({
     mutationFn: (id) => adminApi.reinstateUser(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'users'] }),
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (id) => adminApi.deleteUser(id),
+    onSuccess: () => {
+      setDeleteTarget(null)
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
+    },
   })
 
   const users = data?.data || []
@@ -122,6 +133,11 @@ export default function AdminUsers() {
                             <ShieldOff className="size-4 text-danger" /> Suspend
                           </Button>
                         )}
+                        {me?.id !== user.id && (
+                          <Button size="sm" variant="ghost" title="Delete user" onClick={() => setDeleteTarget(user)}>
+                            <Trash2 className="size-4 text-danger" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -133,6 +149,33 @@ export default function AdminUsers() {
       ) : (
         <EmptyState title="No users found" description="Try adjusting your search." />
       )}
+
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete user">
+        <p className="text-sm text-ink-soft">
+          Permanently delete <strong className="text-ink">{deleteTarget?.name}</strong> ({deleteTarget?.email})?
+          Their listings and related data will be removed. This cannot be undone.
+        </p>
+        {deleteMutation.isError && (
+          <p className="mt-3 text-sm text-danger">
+            {deleteMutation.error?.response?.data?.message ||
+              deleteMutation.error?.response?.data?.errors?.user?.[0] ||
+              'Could not delete user.'}
+          </p>
+        )}
+        <div className="mt-4 flex gap-2">
+          <Button variant="secondary" className="flex-1" onClick={() => setDeleteTarget(null)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-1"
+            loading={deleteMutation.isPending}
+            onClick={() => deleteMutation.mutate(deleteTarget.id)}
+          >
+            Delete user
+          </Button>
+        </div>
+      </Modal>
     </div>
   )
 }

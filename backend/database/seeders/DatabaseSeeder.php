@@ -7,14 +7,19 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Production-safe seed: categories, settings, and admin from env.
+     * Demo buyers/sellers/listings only when SEED_DEMO=true.
      */
     public function run(): void
     {
         $this->call([
             CategorySeeder::class,
             SettingSeeder::class,
-            DemoDataSeeder::class,
+            AdminUserSeeder::class,
         ]);
+
+        if (filter_var(env('SEED_DEMO', false), FILTER_VALIDATE_BOOLEAN)) {
+            $this->call(DemoDataSeeder::class);
+        }
     }
 }

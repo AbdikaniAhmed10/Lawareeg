@@ -67,17 +67,17 @@ npm run dev
 
 App: [http://localhost:5173](http://localhost:5173)
 
-### Demo accounts (password: `password`)
+### Demo accounts (local only)
 
-| Role | Email |
-|------|--------|
-| Admin | `admin@lawareeg.com` |
-| Buyer | `buyer@lawareeg.com` |
-| Seller | `seller@lawareeg.com` |
+Set `SEED_DEMO=true` and `ADMIN_*` in `.env`, then `php artisan db:seed`.
 
-Default commission: **10%** (configurable in Admin → Settings).
+| Role | Email | Password |
+|------|--------|----------|
+| Admin | from `ADMIN_EMAIL` | from `ADMIN_PASSWORD` |
+| Buyer (demo) | `buyer@lawareeg.com` | `password` |
+| Seller (demo) | `seller@lawareeg.com` | `password` |
 
-Demo accounts are **email-verified** by the seeder. New registrations get a **6-digit code** by email and must enter it on `/verify-email` before the dashboard opens (configure Gmail SMTP / App Password in `backend/.env`).
+**Production:** set `SEED_DEMO=false`, set strong `ADMIN_EMAIL` / `ADMIN_PASSWORD`, then seed once. Do not run demo data online. New real users register themselves and verify email with a 6-digit code.
 
 ## Docker (recommended for Contabo VPS)
 

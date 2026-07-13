@@ -7,6 +7,7 @@ export const adminApi = {
   updateUser: (id, payload) => apiClient.put(`/admin/users/${id}`, payload).then((r) => r.data),
   suspendUser: (id) => apiClient.post(`/admin/users/${id}/suspend`).then((r) => r.data),
   reinstateUser: (id) => apiClient.post(`/admin/users/${id}/reinstate`).then((r) => r.data),
+  deleteUser: (id) => apiClient.delete(`/admin/users/${id}`).then((r) => r.data),
 
   verifications: (params) => apiClient.get('/admin/verifications', { params }).then((r) => r.data),
   approveVerification: (id, payload) =>
@@ -19,6 +20,7 @@ export const adminApi = {
   rejectListing: (id, payload) => apiClient.post(`/admin/listings/${id}/reject`, payload).then((r) => r.data),
   verifyOwnership: (id) => apiClient.post(`/admin/listings/${id}/verify-ownership`).then((r) => r.data),
   rejectOwnership: (id, payload) => apiClient.post(`/admin/listings/${id}/reject-ownership`, payload).then((r) => r.data),
+  deleteListing: (id) => apiClient.delete(`/admin/listings/${id}`).then((r) => r.data),
 
   orders: (params) => apiClient.get('/admin/orders', { params }).then((r) => r.data),
   orderDetail: (id) => apiClient.get(`/admin/orders/${id}`).then((r) => r.data),

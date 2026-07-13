@@ -65,8 +65,11 @@ Set at least:
 
 ```bash
 docker compose --env-file .env.docker up -d --build
-docker compose --env-file .env.docker exec backend php artisan db:seed --force   # optional demo
+# Production seed (categories + settings + ADMIN_* only — no fake listings):
+docker compose --env-file .env.docker exec backend php artisan db:seed --force
 ```
+
+Do **not** set `SEED_DEMO=true` on Contabo.
 
 ## 4. Host Nginx (TLS) in front of Docker
 

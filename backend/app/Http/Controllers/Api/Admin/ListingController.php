@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ListingResource;
+use App\Models\Favorite;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 
@@ -89,5 +90,14 @@ class ListingController extends Controller
             'data' => new ListingResource($listing->fresh(['category', 'user'])),
             'message' => 'Ownership verification failed.',
         ]);
+    }
+
+    public function destroy(Listing $listing)
+    {
+        $listing->screenshots()->delete();
+        Favorite::query()->where('listing_id', $listing->id)->delete();
+        $listing->delete();
+
+        return response()->json(['message' => 'Listing deleted.']);
     }
 }

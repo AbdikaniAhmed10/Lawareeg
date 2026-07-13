@@ -146,6 +146,7 @@ Route::middleware(['auth:sanctum', 'not-suspended', 'verified'])->group(function
         Route::put('/users/{user}', [AdminUserController::class, 'update']);
         Route::post('/users/{user}/suspend', [AdminUserController::class, 'suspend']);
         Route::post('/users/{user}/reinstate', [AdminUserController::class, 'reinstate']);
+        Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
 
         Route::get('/verifications', [AdminSellerVerificationController::class, 'index']);
         Route::post('/verifications/{verification}/approve', [AdminSellerVerificationController::class, 'approve']);
@@ -156,6 +157,7 @@ Route::middleware(['auth:sanctum', 'not-suspended', 'verified'])->group(function
         Route::post('/listings/{listing}/reject', [AdminListingController::class, 'reject']);
         Route::post('/listings/{listing}/verify-ownership', [AdminListingController::class, 'verifyOwnership']);
         Route::post('/listings/{listing}/reject-ownership', [AdminListingController::class, 'rejectOwnership']);
+        Route::delete('/listings/{listing}', [AdminListingController::class, 'destroy']);
 
         Route::get('/orders/{order}', [AdminOrderController::class, 'show']);
         Route::get('/orders', [AdminOrderController::class, 'index']);

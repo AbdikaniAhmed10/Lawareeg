@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -62,5 +63,28 @@ class UserController extends Controller
         return response()->json([
             'data' => new UserResource($user->fresh()),
         ]);
+    }
+
+    public function destroy(Request $request, User $user)
+    {
+        if ($request->user()->id === $user->id) {
+            throw ValidationException::withMessages([
+                'user' => ['You cannot delete your own admin account.'],
+            ]);
+        }
+
+        if ($user->isAdmin()) {
+            $adminCount = User::query()->where('role', 'admin')->count();
+            if ($adminCount <= 1) {
+                throw ValidationException::withMessages([
+                    'user' => ['Cannot delete the last admin account.'],
+                ]);
+            }
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'User deleted.']);
     }
 }
