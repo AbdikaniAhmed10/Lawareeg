@@ -10,10 +10,13 @@ import { useAuthStore } from '../../store/authStore'
 import BackButton from '../../components/ui/BackButton'
 import { COUNTRIES } from '../../lib/countries'
 import BrandLogo from '../../components/ui/BrandLogo'
+import LanguageSwitcher from '../../components/ui/LanguageSwitcher'
+import { useT } from '../../context/LanguageContext'
 
 export default function Register() {
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const { t } = useT()
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -56,12 +59,15 @@ export default function Register() {
   return (
     <div className="flex min-h-screen atmosphere-gradient">
       <div className="flex w-full flex-col items-center justify-center px-4 py-16 sm:px-6">
-        <BackButton to="/login" label="Back to sign in" className="mb-6" preferHistory={false} />
+        <div className="mb-6 flex w-full max-w-md items-center justify-between gap-3">
+          <BackButton to="/login" label={t('common.signIn')} preferHistory={false} />
+          <LanguageSwitcher />
+        </div>
         <BrandLogo to="/" size="lg" className="mb-8" />
 
         <div className="w-full max-w-md animate-fade-in-up rounded-2xl border border-border bg-surface p-8 shadow-lg">
-          <h1 className="font-display text-2xl font-semibold text-ink">Create your account</h1>
-          <p className="mt-1.5 text-sm text-ink-soft">Join Lawareeg to buy and sell digital assets safely.</p>
+          <h1 className="font-display text-2xl font-semibold text-ink">{t('auth.registerTitle')}</h1>
+          <p className="mt-1.5 text-sm text-ink-soft">{t('auth.registerSubtitle')}</p>
 
           {error && <Alert variant="danger" className="mt-5">{error}</Alert>}
 

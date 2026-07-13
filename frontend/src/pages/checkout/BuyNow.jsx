@@ -8,7 +8,6 @@ import apiClient from '../../api/client'
 import Button from '../../components/ui/Button'
 import Alert from '../../components/ui/Alert'
 import Spinner from '../../components/ui/Spinner'
-import { MOCK_LISTINGS } from '../../lib/mockData'
 import { formatCurrency } from '../../lib/format'
 import { normalizeListing } from '../../lib/normalize'
 import { useAuthStore } from '../../store/authStore'
@@ -35,7 +34,7 @@ export default function BuyNow() {
     retry: 0,
   })
 
-  const listing = normalizeListing(data?.data) || MOCK_LISTINGS.find((l) => l.slug === slug)
+  const listing = data?.data ? normalizeListing(data.data) : null
   const isOwner =
     Boolean(listing?.is_owner) ||
     (user && listing && (user.id === listing.user_id || user.id === listing.seller?.id))

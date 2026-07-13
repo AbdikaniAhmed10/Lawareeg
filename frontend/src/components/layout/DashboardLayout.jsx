@@ -17,26 +17,28 @@ import {
 import Navbar from './Navbar'
 import Footer from './Footer'
 import { useAuthStore } from '../../store/authStore'
+import { useT } from '../../context/LanguageContext'
 import { initials } from '../../lib/format'
 import { isEmailVerified } from '../auth/RequireVerified'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/dashboard/profile', label: 'Profile', icon: User },
-  { to: '/dashboard/favorites', label: 'Favorites', icon: Heart },
-  { to: '/dashboard/orders', label: 'My Orders', icon: ShoppingBag },
-  { to: '/dashboard/my-listings', label: 'My Listings', icon: Tag },
-  { to: '/dashboard/my-listings/new', label: 'Create Listing', icon: PlusCircle },
-  { to: '/dashboard/messages', label: 'Messages', icon: MessageSquare },
-  { to: '/dashboard/wallet', label: 'Wallet', icon: Wallet },
-  { to: '/dashboard/notifications', label: 'Notifications', icon: Bell },
-  { to: '/dashboard/reviews', label: 'Reviews', icon: Star },
-  { to: '/dashboard/seller-verification', label: 'Seller Verification', icon: BadgeCheck },
-  { to: '/dashboard/withdrawals', label: 'Withdrawals', icon: Banknote },
+  { to: '/dashboard', labelKey: 'dashboard.overview', icon: LayoutDashboard, end: true },
+  { to: '/dashboard/profile', labelKey: 'dashboard.profile', icon: User },
+  { to: '/dashboard/favorites', labelKey: 'dashboard.favorites', icon: Heart },
+  { to: '/dashboard/orders', labelKey: 'dashboard.myOrders', icon: ShoppingBag },
+  { to: '/dashboard/my-listings', labelKey: 'dashboard.myListings', icon: Tag },
+  { to: '/dashboard/my-listings/new', labelKey: 'dashboard.createListing', icon: PlusCircle },
+  { to: '/dashboard/messages', labelKey: 'dashboard.messages', icon: MessageSquare },
+  { to: '/dashboard/wallet', labelKey: 'dashboard.wallet', icon: Wallet },
+  { to: '/dashboard/notifications', labelKey: 'dashboard.notifications', icon: Bell },
+  { to: '/dashboard/reviews', labelKey: 'dashboard.reviews', icon: Star },
+  { to: '/dashboard/seller-verification', labelKey: 'dashboard.sellerVerification', icon: BadgeCheck },
+  { to: '/dashboard/withdrawals', labelKey: 'dashboard.withdrawals', icon: Banknote },
 ]
 
 export default function DashboardLayout() {
   const { isAuthenticated, user } = useAuthStore()
+  const { t } = useT()
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -80,7 +82,7 @@ export default function DashboardLayout() {
                   }
                 >
                   <item.icon className="size-4" />
-                  {item.label}
+                  {t(item.labelKey)}
                 </NavLink>
               ))}
             </nav>

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
-  Search,
   Menu,
   X,
   Sun,
@@ -16,21 +15,24 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useTheme } from '../../context/ThemeContext'
+import { useT } from '../../context/LanguageContext'
 import { useAuthStore } from '../../store/authStore'
 import Button from '../ui/Button'
 import BrandLogo from '../ui/BrandLogo'
+import LanguageSwitcher from '../ui/LanguageSwitcher'
 import { initials } from '../../lib/format'
 
 const NAV_LINKS = [
-  { to: '/browse', label: 'Browse' },
-  { to: '/how-it-works', label: 'How it Works' },
-  { to: '/faq', label: 'FAQ' },
+  { to: '/browse', labelKey: 'nav.browse' },
+  { to: '/how-it-works', labelKey: 'nav.howItWorks' },
+  { to: '/faq', labelKey: 'nav.faq' },
 ]
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
+  const { t } = useT()
   const { user, isAuthenticated, logout } = useAuthStore()
   const navigate = useNavigate()
 
@@ -61,7 +63,7 @@ export default function Navbar() {
                     )
                   }
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </NavLink>
               ))}
             </nav>
@@ -69,6 +71,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <button
             type="button"
             onClick={toggleTheme}
@@ -123,7 +126,7 @@ export default function Navbar() {
                         <p className="text-sm font-medium text-ink truncate">{user?.name}</p>
                         <p className="text-xs text-ink-soft truncate">{user?.email}</p>
                         {isAdmin && (
-                          <p className="mt-1 text-xs font-medium text-primary">Platform admin</p>
+                          <p className="mt-1 text-xs font-medium text-primary">{t('nav.platformAdmin')}</p>
                         )}
                       </div>
                       {isAdmin ? (
@@ -132,7 +135,7 @@ export default function Navbar() {
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-sand-deep hover:text-ink"
                         >
-                          <LayoutDashboard className="size-4" /> Admin Panel
+                          <LayoutDashboard className="size-4" /> {t('nav.adminPanel')}
                         </Link>
                       ) : (
                         <>
@@ -141,14 +144,14 @@ export default function Navbar() {
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-sand-deep hover:text-ink"
                           >
-                            <LayoutDashboard className="size-4" /> Dashboard
+                            <LayoutDashboard className="size-4" /> {t('nav.dashboard')}
                           </Link>
                           <Link
                             to="/dashboard/wallet"
                             onClick={() => setProfileOpen(false)}
                             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-ink-soft hover:bg-sand-deep hover:text-ink"
                           >
-                            <Wallet className="size-4" /> Wallet
+                            <Wallet className="size-4" /> {t('nav.wallet')}
                           </Link>
                         </>
                       )}
@@ -157,7 +160,7 @@ export default function Navbar() {
                         onClick={handleLogout}
                         className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger/10 cursor-pointer"
                       >
-                        <LogOut className="size-4" /> Sign out
+                        <LogOut className="size-4" /> {t('common.signOut')}
                       </button>
                     </div>
                   </>
@@ -167,10 +170,10 @@ export default function Navbar() {
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
               <Button as={Link} to="/login" variant="ghost" size="sm">
-                Sign in
+                {t('common.signIn')}
               </Button>
               <Button as={Link} to="/register" variant="primary" size="sm">
-                Get started
+                {t('common.getStarted')}
               </Button>
             </div>
           )}
@@ -201,7 +204,7 @@ export default function Navbar() {
                     )
                   }
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </NavLink>
               ))}
             {isAdmin && (
@@ -210,16 +213,16 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-primary"
               >
-                Admin Panel
+                {t('nav.adminPanel')}
               </Link>
             )}
             {!isAuthenticated && (
               <div className="mt-3 flex flex-col gap-2 border-t border-border pt-3">
                 <Button as={Link} to="/login" variant="secondary" onClick={() => setOpen(false)}>
-                  Sign in
+                  {t('common.signIn')}
                 </Button>
                 <Button as={Link} to="/register" variant="primary" onClick={() => setOpen(false)}>
-                  Get started
+                  {t('common.getStarted')}
                 </Button>
               </div>
             )}

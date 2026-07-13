@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\OrderResource;
 use App\Models\Listing;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Withdrawal;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -15,6 +15,12 @@ class DashboardController extends Controller
     {
         $totalRevenue = (float) Order::where('status', Order::STATUS_COMPLETED)->sum('commission_amount');
         $totalSalesVolume = (float) Order::where('status', Order::STATUS_COMPLETED)->sum('price');
+
+        $recentOrders = Order::query()
+            ->with(['listing:id,title'])
+            ->latest()
+            ->limit(8)
+            ->get();
 
         return response()->json([
             'data' => [
@@ -51,6 +57,7 @@ class DashboardController extends Controller
                     'total_commission' => $totalRevenue,
                     'total_sales_volume' => $totalSalesVolume,
                 ],
+                'recent_orders' => OrderResource::collection($recentOrders)->resolve(),
             ],
         ]);
     }

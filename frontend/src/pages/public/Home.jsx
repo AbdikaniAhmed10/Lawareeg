@@ -1,42 +1,29 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Search, ShieldCheck, ArrowRight, Star, Quote, ChevronDown, Wallet, Handshake, PackageCheck } from 'lucide-react'
+import { Search, ShieldCheck, ArrowRight, Star, ChevronDown, Wallet, Handshake, PackageCheck } from 'lucide-react'
 import listingsApi from '../../api/listings'
 import ListingCard from '../../components/listings/ListingCard'
 import CategoryGrid from '../../components/listings/CategoryGrid'
 import Button from '../../components/ui/Button'
 import EmptyState from '../../components/ui/EmptyState'
-import { MOCK_LISTINGS, MOCK_TOP_SELLERS, MOCK_TESTIMONIALS, MOCK_FAQS } from '../../lib/mockData'
-import { formatCurrency, initials } from '../../lib/format'
+import { initials } from '../../lib/format'
 import BrandLogo from '../../components/ui/BrandLogo'
+import { useT } from '../../context/LanguageContext'
+import { getFaqItems } from '../../i18n'
 
-const STEPS = [
-  {
-    icon: Search,
-    title: 'Find an asset',
-    description: 'Browse verified digital assets across ten categories, filtered by price, revenue and rating.',
-  },
-  {
-    icon: Wallet,
-    title: 'Pay into escrow',
-    description: 'Send payment via bank transfer or mobile money and upload your receipt for review.',
-  },
-  {
-    icon: Handshake,
-    title: 'Seller transfers asset',
-    description: 'Once payment is confirmed, the seller hands over full ownership and access.',
-  },
-  {
-    icon: PackageCheck,
-    title: 'Funds released',
-    description: 'You confirm receipt, and we release payment to the seller. Simple and safe.',
-  },
+const STEP_KEYS = [
+  { icon: Search, titleKey: 'home.stepFind', descKey: 'home.stepFindDesc' },
+  { icon: Wallet, titleKey: 'home.stepPay', descKey: 'home.stepPayDesc' },
+  { icon: Handshake, titleKey: 'home.stepTransfer', descKey: 'home.stepTransferDesc' },
+  { icon: PackageCheck, titleKey: 'home.stepRelease', descKey: 'home.stepReleaseDesc' },
 ]
 
 export default function Home() {
   const navigate = useNavigate()
+  const { t, locale } = useT()
   const [query, setQuery] = useState('')
+  const faqs = getFaqItems(locale).slice(0, 3)
 
   const featuredQuery = useQuery({
     queryKey: ['listings', 'featured'],
@@ -54,9 +41,9 @@ export default function Home() {
     retry: 0,
   })
 
-  const featured = featuredQuery.data?.data?.length ? featuredQuery.data.data : MOCK_LISTINGS.slice(0, 4)
-  const latest = latestQuery.data?.data?.length ? latestQuery.data.data : MOCK_LISTINGS.slice(4, 8)
-  const topSellers = sellersQuery.data?.data?.length ? sellersQuery.data.data : MOCK_TOP_SELLERS
+  const featured = featuredQuery.data?.data || []
+  const latest = latestQuery.data?.data || []
+  const topSellers = sellersQuery.data?.data || []
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -65,12 +52,11 @@ export default function Home() {
 
   return (
     <div className="w-full overflow-x-hidden">
-      {/* HERO — block layout (not flex-center) so text wraps on phones */}
       <section className="relative w-full atmosphere-gradient">
         <div className="mx-auto w-full max-w-5xl px-4 py-14 text-center sm:px-6 sm:py-28 lg:px-8">
           <span className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-medium text-primary sm:mb-6 sm:gap-2 sm:px-4 sm:py-1.5 sm:text-xs">
             <ShieldCheck className="size-3.5 shrink-0" />
-            <span>Escrow-protected trades, every time</span>
+            <span>{t('home.badge')}</span>
           </span>
 
           <div className="mx-auto mb-4 flex justify-center sm:mb-5">
@@ -82,19 +68,18 @@ export default function Home() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-[22rem] text-pretty font-display text-lg font-medium leading-snug text-ink sm:mt-6 sm:max-w-2xl sm:text-3xl">
-            The trusted marketplace to buy and sell digital assets.
+            {t('home.tagline')}
           </p>
           <p className="mx-auto mt-3 max-w-[22rem] text-pretty text-sm leading-relaxed text-ink-soft sm:max-w-xl sm:text-lg">
-            Facebook pages, Instagram &amp; TikTok accounts, YouTube channels, websites, domains, apps and online
-            businesses — every trade protected by manual escrow.
+            {t('home.subtitle')}
           </p>
 
           <div className="mx-auto mt-7 flex w-full max-w-sm flex-col gap-3 sm:mt-9 sm:max-w-md sm:flex-row sm:justify-center">
             <Button as={Link} to="/browse" size="lg" className="w-full sm:w-auto">
-              Browse listings <ArrowRight className="size-4" />
+              {t('home.browseListings')} <ArrowRight className="size-4" />
             </Button>
             <Button as={Link} to="/dashboard/my-listings/new" size="lg" variant="secondary" className="w-full sm:w-auto">
-              Sell an asset
+              {t('home.sellAsset')}
             </Button>
           </div>
 
@@ -106,49 +91,35 @@ export default function Home() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search assets…"
+              placeholder={t('home.searchPlaceholder')}
               className="h-10 min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-soft/50 sm:h-11"
             />
             <Button type="submit" size="sm" className="shrink-0 sm:h-11 sm:px-5">
-              Search
+              {t('common.search')}
             </Button>
           </form>
-
-          <div className="mx-auto mt-7 grid w-full max-w-sm grid-cols-1 gap-2 text-sm text-ink-soft sm:mt-10 sm:max-w-2xl sm:grid-cols-3 sm:gap-4">
-            <span>
-              <strong className="text-ink">1,200+</strong> assets sold
-            </span>
-            <span>
-              <strong className="text-ink">$4.8M+</strong> in escrow
-            </span>
-            <span>
-              <strong className="text-ink">4.8/5</strong> avg rating
-            </span>
-          </div>
         </div>
       </section>
 
-      {/* CATEGORIES */}
       <section className="mx-auto w-full max-w-7xl min-w-0 px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <div className="mb-8 flex min-w-0 items-end justify-between gap-4 sm:mb-10">
           <div className="min-w-0">
-            <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">Browse by category</h2>
-            <p className="mt-2 text-sm text-ink-soft sm:text-base">Ten curated categories, all escrow-protected.</p>
+            <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">{t('home.categoriesTitle')}</h2>
+            <p className="mt-2 text-sm text-ink-soft sm:text-base">{t('home.categoriesSubtitle')}</p>
           </div>
           <Link to="/browse" className="hidden shrink-0 items-center gap-1 text-sm font-medium text-primary sm:flex">
-            View all <ArrowRight className="size-3.5" />
+            {t('home.viewAll')} <ArrowRight className="size-3.5" />
           </Link>
         </div>
         <CategoryGrid />
       </section>
 
-      {/* FEATURED */}
       <section className="bg-sand-deep/40 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-10 flex items-end justify-between">
             <div>
-              <h2 className="font-display text-3xl font-semibold text-ink">Featured listings</h2>
-              <p className="mt-2 text-ink-soft">Hand-picked assets with strong performance history.</p>
+              <h2 className="font-display text-3xl font-semibold text-ink">{t('home.featuredTitle')}</h2>
+              <p className="mt-2 text-ink-soft">{t('home.featuredSubtitle')}</p>
             </div>
           </div>
           {featured.length ? (
@@ -158,20 +129,19 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <EmptyState title="No featured listings yet" description="Check back soon for hand-picked assets." />
+            <EmptyState title={t('home.featuredEmpty')} description={t('home.featuredEmptyDesc')} />
           )}
         </div>
       </section>
 
-      {/* LATEST */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="mb-10 flex items-end justify-between">
           <div>
-            <h2 className="font-display text-3xl font-semibold text-ink">Latest arrivals</h2>
-            <p className="mt-2 text-ink-soft">Freshly listed digital assets, updated daily.</p>
+            <h2 className="font-display text-3xl font-semibold text-ink">{t('home.latestTitle')}</h2>
+            <p className="mt-2 text-ink-soft">{t('home.latestSubtitle')}</p>
           </div>
           <Link to="/browse" className="hidden shrink-0 items-center gap-1 text-sm font-medium text-primary sm:flex">
-            View all <ArrowRight className="size-3.5" />
+            {t('home.viewAll')} <ArrowRight className="size-3.5" />
           </Link>
         </div>
         {latest.length ? (
@@ -181,106 +151,83 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <EmptyState title="No listings yet" description="Be the first to list a digital asset for sale." />
+          <EmptyState title={t('home.latestEmpty')} description={t('home.latestEmptyDesc')} />
         )}
       </section>
 
-      {/* TOP SELLERS */}
       <section className="bg-sand-deep/40 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl font-semibold text-ink">Top rated sellers</h2>
-          <p className="mt-2 text-ink-soft">Sellers with proven track records and verified identities.</p>
+          <h2 className="font-display text-3xl font-semibold text-ink">{t('home.sellersTitle')}</h2>
+          <p className="mt-2 text-ink-soft">{t('home.sellersSubtitle')}</p>
           <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-4">
-            {topSellers.map((seller) => (
-              <Link
-                key={seller.id}
-                to={`/users/${seller.id}`}
-                className="card-hover flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface p-6 text-center"
-              >
-                <span className="flex size-14 items-center justify-center overflow-hidden rounded-full bg-primary/10 font-display text-lg font-semibold text-primary">
-                  {seller.avatar ? (
-                    <img src={seller.avatar} alt="" className="size-full object-cover" />
-                  ) : (
-                    initials(seller.name)
-                  )}
-                </span>
-                <div>
-                  <p className="flex items-center justify-center gap-1 font-medium text-ink">
-                    {seller.name}
-                    {(seller.verified || seller.is_verified_seller) && (
-                      <ShieldCheck className="size-3.5 text-primary" />
+            {topSellers.length ? (
+              topSellers.map((seller) => (
+                <Link
+                  key={seller.id}
+                  to={`/users/${seller.id}`}
+                  className="card-hover flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface p-6 text-center"
+                >
+                  <span className="flex size-14 items-center justify-center overflow-hidden rounded-full bg-primary/10 font-display text-lg font-semibold text-primary">
+                    {seller.avatar ? (
+                      <img src={seller.avatar} alt="" className="size-full object-cover" />
+                    ) : (
+                      initials(seller.name)
                     )}
-                  </p>
-                  <p className="flex items-center justify-center gap-1 text-xs text-ink-soft">
-                    <Star className="size-3.5 fill-accent text-accent" />{' '}
-                    {Number(seller.rating ?? seller.rating_avg ?? 0).toFixed(1)} ·{' '}
-                    {seller.sales ?? seller.rating_count ?? 0} reviews
-                  </p>
-                </div>
-              </Link>
-            ))}
+                  </span>
+                  <div>
+                    <p className="flex items-center justify-center gap-1 font-medium text-ink">
+                      {seller.name}
+                      {(seller.verified || seller.is_verified_seller) && (
+                        <ShieldCheck className="size-3.5 text-primary" />
+                      )}
+                    </p>
+                    <p className="flex items-center justify-center gap-1 text-xs text-ink-soft">
+                      <Star className="size-3.5 fill-accent text-accent" />{' '}
+                      {Number(seller.rating ?? seller.rating_avg ?? 0).toFixed(1)} ·{' '}
+                      {seller.sales ?? seller.rating_count ?? 0}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full">
+                <EmptyState title={t('home.sellersEmpty')} description={t('home.sellersEmptyDesc')} />
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="font-display text-3xl font-semibold text-ink">How Lawareeg works</h2>
-          <p className="mx-auto mt-2 max-w-xl text-ink-soft">
-            A simple four-step manual escrow process built for trust.
-          </p>
+          <h2 className="font-display text-3xl font-semibold text-ink">{t('home.howTitle')}</h2>
+          <p className="mx-auto mt-2 max-w-xl text-ink-soft">{t('home.howSubtitle')}</p>
         </div>
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((step, idx) => (
-            <div key={step.title} className="relative rounded-2xl border border-border bg-surface p-6 card-hover">
+          {STEP_KEYS.map((step, idx) => (
+            <div key={step.titleKey} className="relative rounded-2xl border border-border bg-surface p-6 card-hover">
               <span className="absolute right-5 top-5 font-display text-3xl font-semibold text-primary/10">
                 {String(idx + 1).padStart(2, '0')}
               </span>
               <div className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <step.icon className="size-5.5" />
               </div>
-              <h3 className="mt-4 font-medium text-ink">{step.title}</h3>
-              <p className="mt-1.5 text-sm text-ink-soft">{step.description}</p>
+              <h3 className="mt-4 font-medium text-ink">{t(step.titleKey)}</h3>
+              <p className="mt-1.5 text-sm text-ink-soft">{t(step.descKey)}</p>
             </div>
           ))}
         </div>
         <div className="mt-10 text-center">
           <Button as={Link} to="/how-it-works" variant="outline">
-            Learn more about escrow <ArrowRight className="size-4" />
+            {t('home.learnEscrow')} <ArrowRight className="size-4" />
           </Button>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="bg-sand-deep/40 py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center font-display text-3xl font-semibold text-ink">Loved by buyers and sellers</h2>
-          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {MOCK_TESTIMONIALS.map((t) => (
-              <div key={t.id} className="rounded-2xl border border-border bg-surface p-6 card-hover">
-                <Quote className="size-6 text-primary/30" />
-                <p className="mt-4 text-sm leading-relaxed text-ink-soft">{t.quote}</p>
-                <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
-                  <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                    {initials(t.name)}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-ink">{t.name}</p>
-                    <p className="text-xs text-ink-soft">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ TEASER */}
       <section className="mx-auto max-w-4xl px-4 py-20 sm:px-6 lg:px-8">
-        <h2 className="text-center font-display text-3xl font-semibold text-ink">Frequently asked questions</h2>
+        <h2 className="text-center font-display text-3xl font-semibold text-ink">{t('home.faqTitle')}</h2>
         <div className="mt-10 flex flex-col gap-3">
-          {MOCK_FAQS.slice(0, 3).map((faq) => (
+          {faqs.map((faq) => (
             <details key={faq.q} className="group rounded-xl border border-border bg-surface p-5 open:shadow-sm transition-shadow">
               <summary className="flex cursor-pointer items-center justify-between font-medium text-ink">
                 {faq.q}
@@ -292,22 +239,17 @@ export default function Home() {
         </div>
         <div className="mt-8 text-center">
           <Button as={Link} to="/faq" variant="link">
-            View all FAQs <ArrowRight className="size-3.5" />
+            {t('home.viewFaqs')} <ArrowRight className="size-3.5" />
           </Button>
         </div>
       </section>
 
-      {/* CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-center sm:px-16">
           <div className="absolute -right-20 -top-20 size-64 rounded-full bg-white/10" />
           <div className="absolute -bottom-24 -left-10 size-72 rounded-full bg-white/5" />
-          <h2 className="relative font-display text-3xl font-semibold text-white sm:text-4xl">
-            Ready to buy or sell your next digital asset?
-          </h2>
-          <p className="relative mx-auto mt-3 max-w-lg text-white/80">
-            Join thousands of buyers and sellers trading safely on Lawareeg.
-          </p>
+          <h2 className="relative font-display text-3xl font-semibold text-white sm:text-4xl">{t('home.ctaTitle')}</h2>
+          <p className="relative mx-auto mt-3 max-w-lg text-white/80">{t('home.ctaSubtitle')}</p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
               as={Link}
@@ -316,10 +258,10 @@ export default function Home() {
               variant="ghost"
               className="border border-white/40 text-white hover:bg-white/10 hover:text-white"
             >
-              Create free account
+              {t('home.ctaRegister')}
             </Button>
             <Button as={Link} to="/browse" size="lg" variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
-              Explore listings
+              {t('home.ctaBrowse')}
             </Button>
           </div>
         </div>

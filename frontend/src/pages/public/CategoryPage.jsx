@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronRight } from 'lucide-react'
@@ -8,12 +8,13 @@ import EmptyState from '../../components/ui/EmptyState'
 import Spinner from '../../components/ui/Spinner'
 import Pagination from '../../components/ui/Pagination'
 import { getCategoryBySlug } from '../../lib/constants'
-import { MOCK_LISTINGS } from '../../lib/mockData'
 import BackButton from '../../components/ui/BackButton'
+import { useT } from '../../context/LanguageContext'
 
 const PER_PAGE = 8
 
 export default function CategoryPage() {
+  const { t } = useT()
   const { slug } = useParams()
   const [page, setPage] = useState(1)
   const category = getCategoryBySlug(slug)
@@ -24,16 +25,15 @@ export default function CategoryPage() {
     retry: 0,
   })
 
-  const fallback = useMemo(() => MOCK_LISTINGS.filter((l) => l.category_slug === slug), [slug])
-  const listings = data?.data?.length ? data.data : fallback
-  const totalPages = data?.meta?.last_page || Math.max(1, Math.ceil(fallback.length / PER_PAGE))
+  const listings = data?.data || []
+  const totalPages = data?.meta?.last_page || 1
   const Icon = category?.icon
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <BackButton to="/browse" label="Back to browse" className="mb-4" />
+      <BackButton to="/browse" label={t('browse.backToBrowse')} className="mb-4" />
       <nav className="mb-6 flex items-center gap-1.5 text-sm text-ink-soft">
-        <Link to="/browse" className="hover:text-primary">Browse</Link>
+        <Link to="/browse" className="hover:text-primary">{t('nav.browse')}</Link>
         <ChevronRight className="size-3.5" />
         <span className="text-ink">{category?.name || slug}</span>
       </nav>
@@ -45,13 +45,13 @@ export default function CategoryPage() {
           </div>
         )}
         <div>
-          <h1 className="font-display text-3xl font-semibold text-ink">{category?.name || 'Category'}</h1>
+          <h1 className="font-display text-3xl font-semibold text-ink">{category?.name || t('browse.category')}</h1>
           <p className="mt-1 text-ink-soft">{category?.description}</p>
         </div>
       </div>
 
       {isLoading ? (
-        <Spinner className="py-24" label="Loading listings…" />
+        <Spinner className="py-24" label={t('browse.loading')} />
       ) : listings.length ? (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -64,7 +64,7 @@ export default function CategoryPage() {
           </div>
         </>
       ) : (
-        <EmptyState title="No listings in this category yet" description="Check back soon or explore other categories." />
+        <EmptyState title={t('browse.emptyCategoryTitle')} description={t('browse.emptyCategoryDesc')} />
       )}
     </div>
   )
