@@ -309,7 +309,13 @@ export default function Home() {
             Join thousands of buyers and sellers trading safely on Lawareeg.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button as={Link} to="/register" size="lg" className="bg-white text-primary hover:bg-white/90">
+            <Button
+              as={Link}
+              to="/register"
+              size="lg"
+              variant="ghost"
+              className="border border-white/40 text-white hover:bg-white/10 hover:text-white"
+            >
               Create free account
             </Button>
             <Button as={Link} to="/browse" size="lg" variant="ghost" className="text-white hover:bg-white/10 hover:text-white">
