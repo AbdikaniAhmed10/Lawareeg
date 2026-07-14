@@ -34,7 +34,20 @@ export default function Login() {
       const redirectTo = location.state?.from || (res.user?.role === 'admin' ? '/admin' : '/dashboard')
       navigate(redirectTo)
     } catch (err) {
-      setError(err?.response?.data?.message || 'Invalid email or password. Please try again.')
+      const apiErrors = err?.response?.data?.errors
+      const status = err?.response?.status
+      if (!err?.response) {
+        setError('Cannot reach the server. Check your internet connection or try again in a moment.')
+      } else if (status >= 500) {
+        setError('Server error during sign-in. Please try again shortly.')
+      } else {
+        setError(
+          apiErrors?.email?.[0] ||
+            apiErrors?.password?.[0] ||
+            err?.response?.data?.message ||
+            'Incorrect email or password. Please try again.'
+        )
+      }
     } finally {
       setLoading(false)
     }

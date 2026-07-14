@@ -27,11 +27,13 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $data = $request->validated();
+        $email = Str::lower(trim($data['email']));
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'email' => $email,
+            // Plain value — User model `hashed` cast hashes once.
+            'password' => $data['password'],
             'country' => $data['country'],
             'role' => $data['role'] ?? 'buyer',
             'referral_code' => Str::upper(Str::random(8)),
@@ -58,12 +60,13 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $data = $request->validated();
+        $email = Str::lower(trim($data['email']));
 
-        $user = User::where('email', $data['email'])->first();
+        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => ['Incorrect email or password.'],
             ]);
         }
 
@@ -202,7 +205,7 @@ class AuthController extends Controller
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user, string $password) {
                 $user->forceFill([
-                    'password' => Hash::make($password),
+                    'password' => $password,
                 ])->save();
 
                 event(new PasswordReset($user));
@@ -247,7 +250,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $user->update(['password' => Hash::make($request->validated('password'))]);
+        $user->update(['password' => $request->validated('password')]);
 
         return response()->json(['message' => 'Password updated successfully.']);
     }

@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Listing;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DemoDataSeeder extends Seeder
@@ -19,7 +18,7 @@ class DemoDataSeeder extends Seeder
             ['email' => 'buyer@lawareeg.com'],
             [
                 'name' => 'Demo Buyer',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'role' => 'buyer',
                 'email_verified_at' => now(),
                 'country' => 'Somalia',
@@ -32,7 +31,7 @@ class DemoDataSeeder extends Seeder
             ['email' => 'seller@lawareeg.com'],
             [
                 'name' => 'Demo Seller',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'role' => 'seller',
                 'email_verified_at' => now(),
                 'bio' => 'Verified digital asset seller with 5+ years of experience flipping online businesses.',
@@ -50,7 +49,7 @@ class DemoDataSeeder extends Seeder
             ['email' => 'seller2@lawareeg.com'],
             [
                 'name' => 'Amina Hassan',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'role' => 'seller',
                 'email_verified_at' => now(),
                 'bio' => 'Growth-focused social media account seller.',
