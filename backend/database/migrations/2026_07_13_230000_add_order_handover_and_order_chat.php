@@ -8,17 +8,24 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            if (! Schema::hasColumn('orders', 'handover_notes')) {
+        // Columns may already exist from a previous partial run that failed later.
+        if (! Schema::hasColumn('orders', 'handover_notes')) {
+            Schema::table('orders', function (Blueprint $table) {
                 $table->text('handover_notes')->nullable()->after('asset_transferred_at');
-            }
-            if (! Schema::hasColumn('orders', 'handover_details')) {
+            });
+        }
+
+        if (! Schema::hasColumn('orders', 'handover_details')) {
+            Schema::table('orders', function (Blueprint $table) {
                 $table->json('handover_details')->nullable()->after('handover_notes');
-            }
-            if (! Schema::hasColumn('orders', 'handover_attachment_path')) {
+            });
+        }
+
+        if (! Schema::hasColumn('orders', 'handover_attachment_path')) {
+            Schema::table('orders', function (Blueprint $table) {
                 $table->string('handover_attachment_path', 2048)->nullable()->after('handover_details');
-            }
-        });
+            });
+        }
 
         if (! Schema::hasColumn('conversations', 'order_id')) {
             Schema::table('conversations', function (Blueprint $table) {
@@ -43,12 +50,12 @@ return new class extends Migration
             });
         }
 
-        Schema::table('orders', function (Blueprint $table) {
-            foreach (['handover_attachment_path', 'handover_details', 'handover_notes'] as $column) {
-                if (Schema::hasColumn('orders', $column)) {
+        foreach (['handover_attachment_path', 'handover_details', 'handover_notes'] as $column) {
+            if (Schema::hasColumn('orders', $column)) {
+                Schema::table('orders', function (Blueprint $table) use ($column) {
                     $table->dropColumn($column);
-                }
+                });
             }
-        });
+        }
     }
 };
