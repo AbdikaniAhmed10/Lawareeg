@@ -49,8 +49,8 @@ Route::middleware('throttle:60,1')->group(function () {
         ->name('secure.message-attachment');
 });
 
-// ---- Auth ----
-Route::prefix('auth')->group(function () {
+// ---- Auth / session (avoid /auth in path — some Chrome ad-blockers block it) ----
+$authRoutes = function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
@@ -65,8 +65,11 @@ Route::prefix('auth')->group(function () {
         Route::post('/profile', [AuthController::class, 'updateProfile'])->middleware('verified');
         Route::put('/password', [AuthController::class, 'updatePassword'])->middleware('verified');
     });
-});
+};
 
+Route::prefix('session')->group($authRoutes);
+// Legacy aliases (kept for older cached frontends)
+Route::prefix('auth')->group($authRoutes);
 // ---- Public listings / categories / sellers ----
 Route::get('/listings/featured', [ListingController::class, 'featured']);
 Route::get('/listings/latest', [ListingController::class, 'latest']);

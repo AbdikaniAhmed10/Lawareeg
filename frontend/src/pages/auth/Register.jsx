@@ -42,10 +42,17 @@ export default function Register() {
       navigate('/verify-email')
     } catch (err) {
       const errors = err?.response?.data?.errors
+      if (!err?.response) {
+        setError(
+          'Chrome (or an extension) blocked account creation. Disable ad blockers for lawareeg.com, or try Incognito.'
+        )
+        return
+      }
       const first =
         errors?.country?.[0] ||
         errors?.email?.[0] ||
         errors?.password?.[0] ||
+        errors?.name?.[0] ||
         err?.response?.data?.message
       setError(first || 'Could not create your account. Please check your details.')
     } finally {
