@@ -36,8 +36,21 @@ export default function Login() {
     } catch (err) {
       const apiErrors = err?.response?.data?.errors
       const status = err?.response?.status
+      const code = err?.code || ''
+      const netMsg = String(err?.message || '')
       if (!err?.response) {
-        setError('Cannot reach the server. Check your internet connection or try again in a moment.')
+        // Chrome extensions (uBlock/AdGuard) often block /api/auth/* → axios "Network Error"
+        // with no response. Incognito works because extensions are off there.
+        const blocked =
+          code === 'ERR_BLOCKED_BY_CLIENT' ||
+          /blocked|ERR_BLOCKED/i.test(netMsg) ||
+          code === 'ERR_NETWORK' ||
+          /Network Error/i.test(netMsg)
+        setError(
+          blocked
+            ? 'Chrome (or an extension) blocked the sign-in request. Turn off ad blockers for lawareeg.com, or use Incognito. This is not a wrong password.'
+            : 'Cannot reach the server. Check your connection, disable VPN/ad-block, then try again.'
+        )
       } else if (status >= 500) {
         setError('Server error during sign-in. Please try again shortly.')
       } else {
