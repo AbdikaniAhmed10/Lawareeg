@@ -32,7 +32,14 @@ export default function Login() {
         return
       }
       const redirectTo = location.state?.from || (res.user?.role === 'admin' ? '/admin' : '/dashboard')
-      navigate(redirectTo)
+      navigate(redirectTo, { replace: true })
+      // Ensure first paint of admin/dashboard is at the top (nested main scrolls too).
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0)
+        document.querySelectorAll('[data-scroll-root], main').forEach((el) => {
+          if (el instanceof HTMLElement) el.scrollTop = 0
+        })
+      })
     } catch (err) {
       const apiErrors = err?.response?.data?.errors
       const status = err?.response?.status

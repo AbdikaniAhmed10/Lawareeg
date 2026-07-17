@@ -76,6 +76,17 @@ export default function AdminLayout() {
   }, [location.pathname])
 
   useEffect(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    document.querySelectorAll('[data-scroll-root], main').forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.scrollTop = 0
+      }
+    })
+  }, [location.pathname])
+
+  useEffect(() => {
     if (!menuOpen) return undefined
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -198,7 +209,7 @@ export default function AdminLayout() {
             </button>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main data-scroll-root className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
         <Footer compact />
