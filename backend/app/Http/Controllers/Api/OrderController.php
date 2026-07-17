@@ -67,7 +67,11 @@ class OrderController extends Controller
         $listing = Listing::findOrFail($request->validated('listing_id'));
 
         try {
-            $order = $this->orderService->createOrder($request->user(), $listing);
+            $order = $this->orderService->createOrder(
+                $request->user(),
+                $listing,
+                $request->validated('payment_method')
+            );
         } catch (RuntimeException $e) {
             throw ValidationException::withMessages(['listing_id' => [$e->getMessage()]]);
         }
