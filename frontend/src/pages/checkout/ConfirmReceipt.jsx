@@ -203,7 +203,7 @@ export default function ConfirmReceipt() {
           <div className="mt-5 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
             <p className="font-medium text-ink">Transfer details from seller</p>
             <p className="mt-1 text-xs text-ink-soft">
-              Only buyer, seller, and admin can see this. Change passwords after you confirm access.
+              Only buyer, seller, and admin can see this. Change passwords after you confirm access. Secrets are removed from Lawareeg when the order finishes.
             </p>
             {order.handover_notes && (
               <pre className="mt-3 whitespace-pre-wrap text-ink">{order.handover_notes}</pre>
@@ -229,6 +229,12 @@ export default function ConfirmReceipt() {
               </a>
             )}
           </div>
+        )}
+
+        {!hasHandover && order.handover_purged_at && (
+          <Alert variant="info" className="mt-5">
+            Transfer login details for this order were permanently removed after the trade finished (security cleanup).
+          </Alert>
         )}
 
         <div className="py-6">
@@ -282,7 +288,8 @@ export default function ConfirmReceipt() {
 
       <Modal open={handoverOpen} onClose={() => setHandoverOpen(false)} title="Send transfer details">
         <p className="text-sm text-ink-soft">
-          Tell the buyer exactly how to take over the asset. These details appear on the order page and stay private to this trade.
+          Tell the buyer how to take over the asset. Fill only what applies — nothing is required except at least one field or a note.
+          Details are encrypted at rest and visible only to buyer, seller, and admin.
         </p>
         <Textarea
           className="mt-4"
@@ -320,18 +327,19 @@ export default function ConfirmReceipt() {
             onChange={(e) => setHandoverDetails((d) => ({ ...d, recovery_phone: e.target.value }))}
           />
           <Input
-            label="Auth / transfer code"
+            label="Auth / transfer code (optional)"
+            hint="Only if needed — 2FA backup, domain auth code, etc."
             value={handoverDetails.auth_code}
             onChange={(e) => setHandoverDetails((d) => ({ ...d, auth_code: e.target.value }))}
           />
           <Input
-            label="Admin invite link"
+            label="Admin invite link (optional)"
             containerClassName="sm:col-span-2"
             value={handoverDetails.admin_invite}
             onChange={(e) => setHandoverDetails((d) => ({ ...d, admin_invite: e.target.value }))}
           />
           <Textarea
-            label="Extra steps"
+            label="Extra steps (optional)"
             containerClassName="sm:col-span-2"
             rows={3}
             value={handoverDetails.extra}

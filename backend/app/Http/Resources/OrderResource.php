@@ -10,6 +10,10 @@ class OrderResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $user = $request->user('sanctum') ?? $request->user();
+        $canSeeHandover = $this->resource->canViewHandover($user);
+        $handoverAvailable = $canSeeHandover && $this->resource->hasHandoverSecrets();
+
         return [
             'id' => $this->id,
             'order_number' => $this->order_number,
@@ -26,11 +30,13 @@ class OrderResource extends JsonResource
             'payment_proof_note' => $this->payment_proof_note,
             'payment_confirmed_at' => $this->payment_confirmed_at?->toIso8601String(),
             'asset_transferred_at' => $this->asset_transferred_at?->toIso8601String(),
-            'handover_notes' => $this->handover_notes,
-            'handover_details' => $this->handover_details,
-            'handover_attachment_url' => $this->handover_attachment_path
+            // Secrets only for buyer / seller / admin — never for other API consumers.
+            'handover_notes' => $handoverAvailable ? $this->handover_notes : null,
+            'handover_details' => $handoverAvailable ? $this->handover_details : null,
+            'handover_attachment_url' => $handoverAvailable && $this->handover_attachment_path
                 ? Media::signedRoute('secure.handover-attachment', ['order' => $this->id])
                 : null,
+            'handover_purged_at' => $this->handover_purged_at?->toIso8601String(),
             'conversation_id' => $this->whenLoaded('conversation', fn () => $this->conversation?->id),
             'buyer_confirmed_at' => $this->buyer_confirmed_at?->toIso8601String(),
             'completed_at' => $this->completed_at?->toIso8601String(),

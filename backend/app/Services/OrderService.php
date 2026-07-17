@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -269,8 +270,38 @@ class OrderService
                 ['order_id' => $order->id]
             );
 
+            // Buyer already confirmed access — remove passwords/codes from the database.
+            $this->purgeSensitiveHandover($order);
+
             return $order;
         });
+    }
+
+    /**
+     * Permanently remove transfer secrets. Keeps only non-sensitive audit events.
+     */
+    public function purgeSensitiveHandover(Order $order): void
+    {
+        $order->refresh();
+
+        if ($order->handover_purged_at && ! $order->hasHandoverSecrets()) {
+            return;
+        }
+
+        $path = $order->getRawOriginal('handover_attachment_path') ?? $order->handover_attachment_path;
+        if (is_string($path) && $path !== '') {
+            Storage::disk('local')->delete($path);
+        }
+
+        // Bypass casts: write nulls directly so we don't re-encrypt empty values oddly.
+        $order->forceFill([
+            'handover_notes' => null,
+            'handover_details' => null,
+            'handover_attachment_path' => null,
+            'handover_purged_at' => now(),
+        ])->save();
+
+        $this->addEvent($order, null, 'handover_purged', 'Sensitive transfer details were permanently deleted from this order.');
     }
 
     public function cancelOrder(Order $order, User $actor, ?string $reason = null): Order
@@ -292,6 +323,7 @@ class OrderService
             }
 
             $this->addEvent($order, $actor, 'order_cancelled', $reason ?? 'Order cancelled.');
+            $this->purgeSensitiveHandover($order);
 
             return $order;
         });
@@ -365,6 +397,7 @@ class OrderService
             }
 
             $this->addEvent($order, $admin, 'order_refunded', 'Order refunded by admin.');
+            $this->purgeSensitiveHandover($order);
 
             return $order;
         });

@@ -44,6 +44,7 @@ class Order extends Model
         'handover_notes',
         'handover_details',
         'handover_attachment_path',
+        'handover_purged_at',
         'buyer_confirmed_at',
         'completed_at',
         'cancelled_at',
@@ -65,7 +66,10 @@ class Order extends Model
             'seller_amount' => 'decimal:2',
             'payment_confirmed_at' => 'datetime',
             'asset_transferred_at' => 'datetime',
-            'handover_details' => 'array',
+            // Encrypt at rest — decrypt only when Eloquent reads (buyer/seller/admin UI).
+            'handover_notes' => 'encrypted',
+            'handover_details' => 'encrypted:array',
+            'handover_purged_at' => 'datetime',
             'buyer_confirmed_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
@@ -108,5 +112,26 @@ class Order extends Model
     public function conversation(): HasOne
     {
         return $this->hasOne(Conversation::class);
+    }
+
+    public function canViewHandover(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return (int) $user->id === (int) $this->buyer_id
+            || (int) $user->id === (int) $this->seller_id;
+    }
+
+    public function hasHandoverSecrets(): bool
+    {
+        return filled($this->handover_notes)
+            || filled($this->handover_details)
+            || filled($this->handover_attachment_path);
     }
 }
