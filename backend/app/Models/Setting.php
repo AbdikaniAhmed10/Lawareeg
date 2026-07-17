@@ -86,13 +86,13 @@ class Setting extends Model
             'min_withdrawal' => static::minWithdrawal(),
             'bank_transfer_details' => (string) static::get(
                 'bank_transfer_details',
-                "Bank: Lawareeg Escrow Bank Ltd.\nAccount name: Lawareeg Marketplace Escrow\nAccount number: 0123456789\nReference: Your order number"
+                ''
             ),
             'mobile_money_details' => (string) static::get(
                 'mobile_money_details',
-                "Provider: Lawareeg Pay\nMobile number: +000 700 000 000\nAccount name: Lawareeg Escrow\nReference: Your order number"
+                ''
             ),
-            'support_email' => (string) static::get('support_email', 'support@lawareeg.com'),
+            'support_email' => (string) static::get('support_email', ''),
             'site_name' => (string) static::get('site_name', 'Lawareeg'),
             'payment_instructions' => static::paymentInstructionsFor(),
         ];
