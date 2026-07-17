@@ -19,7 +19,7 @@ class OrderService
         private NotificationService $notificationService,
     ) {}
 
-    public function createOrder(User $buyer, Listing $listing): Order
+    public function createOrder(User $buyer, Listing $listing, ?string $paymentMethod = null): Order
     {
         if ($listing->status !== 'approved') {
             throw new RuntimeException('This listing is not available for purchase.');
@@ -33,7 +33,7 @@ class OrderService
         $commissionAmount = round(((float) $listing->price) * $commissionRate / 100, 2);
         $sellerAmount = round(((float) $listing->price) - $commissionAmount, 2);
 
-        return DB::transaction(function () use ($buyer, $listing, $commissionRate, $commissionAmount, $sellerAmount) {
+        return DB::transaction(function () use ($buyer, $listing, $commissionRate, $commissionAmount, $sellerAmount, $paymentMethod) {
             $order = Order::create([
                 'order_number' => $this->generateOrderNumber(),
                 'listing_id' => $listing->id,
@@ -44,7 +44,8 @@ class OrderService
                 'commission_amount' => $commissionAmount,
                 'seller_amount' => $sellerAmount,
                 'status' => Order::STATUS_PENDING_PAYMENT,
-                'payment_method_instructions' => Setting::paymentInstructionsFor(),
+                // Snapshot of current Admin Settings (platform escrow — not buyer/seller accounts).
+                'payment_method_instructions' => Setting::paymentInstructionsFor($paymentMethod),
             ]);
 
             $listing->update(['status' => 'sold', 'sold_at' => now()]);

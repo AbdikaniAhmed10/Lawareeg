@@ -15,6 +15,7 @@ class StoreOrderRequest extends FormRequest
     {
         return [
             'listing_id' => ['required', 'exists:listings,id'],
+            'payment_method' => ['nullable', 'in:bank_transfer,mobile_money'],
         ];
     }
 }
